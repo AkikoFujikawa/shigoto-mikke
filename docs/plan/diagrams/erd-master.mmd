@@ -1,5 +1,7 @@
 erDiagram
   direction LR
+  questions ||--o{ question_options : "has"
+  traits ||--o{ question_options : "indicates"
   job_groups ||--o{ jobs : "groups"
   jobs ||--o{ job_interests : "has"
   interests ||--o{ job_interests : "tagged"
@@ -7,8 +9,6 @@ erDiagram
   traits ||--o{ job_traits : "tagged"
   jobs ||--o{ job_academic_fields : "has"
   academic_fields ||--o{ job_academic_fields : "linked"
-  questions ||--o{ question_options : "has"
-  traits ||--o{ question_options : "indicates"
   job_groups {
     int id PK
     string name
