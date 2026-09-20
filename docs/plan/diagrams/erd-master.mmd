@@ -1,0 +1,63 @@
+erDiagram
+  job_groups ||--o{ jobs : "groups"
+  jobs ||--o{ job_interests : "has"
+  interests ||--o{ job_interests : "tagged"
+  jobs ||--o{ job_traits : "has"
+  traits ||--o{ job_traits : "tagged"
+  jobs ||--o{ job_academic_fields : "has"
+  academic_fields ||--o{ job_academic_fields : "linked"
+  questions ||--o{ question_options : "has"
+  traits ||--o{ question_options : "indicates"
+  job_groups {
+    int id PK
+    string name
+  }
+  jobs {
+    int id PK
+    int job_group_id FK
+    string name
+    string summary
+    text description
+    string image_url
+    string emoji
+    boolean is_published
+  }
+  interests {
+    int id PK
+    string code UK
+    string label
+    string emoji
+  }
+  traits {
+    int id PK
+    string code UK
+    string label
+    string description
+  }
+  academic_fields {
+    int id PK
+    string name UK
+    enum category "liberal_arts / science / mixed"
+  }
+  questions {
+    int id PK
+    string text
+  }
+  question_options {
+    int id PK
+    int question_id FK
+    string label
+    int trait_id FK
+  }
+  job_interests {
+    int job_id FK
+    int interest_id FK
+  }
+  job_traits {
+    int job_id FK
+    int trait_id FK
+  }
+  job_academic_fields {
+    int job_id FK
+    int academic_field_id FK
+  }
