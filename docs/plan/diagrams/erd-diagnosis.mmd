@@ -21,23 +21,23 @@ erDiagram
     datetime created_at
   }
   diagnosis_interests {
-    int diagnosis_id FK
-    int interest_id FK
+    int diagnosis_id PK, FK
+    int interest_id PK, FK
   }
   diagnosis_answers {
-    int diagnosis_id FK
-    int question_id FK
+    int diagnosis_id PK, FK
+    int question_id PK, FK
     int option_id FK
   }
   diagnosis_strengths {
-    int diagnosis_id FK
-    int rank
+    int diagnosis_id PK, FK
+    int rank PK
     int trait_id FK
     string description
   }
   diagnosis_jobs {
-    int diagnosis_id FK
-    int rank
+    int diagnosis_id PK, FK
+    int rank PK
     int job_id FK
     int score
     string why_text

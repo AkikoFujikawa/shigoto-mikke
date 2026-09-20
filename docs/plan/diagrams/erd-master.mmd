@@ -50,14 +50,14 @@ erDiagram
     int trait_id FK
   }
   job_interests {
-    int job_id FK
-    int interest_id FK
+    int job_id PK, FK
+    int interest_id PK, FK
   }
   job_traits {
-    int job_id FK
-    int trait_id FK
+    int job_id PK, FK
+    int trait_id PK, FK
   }
   job_academic_fields {
-    int job_id FK
-    int academic_field_id FK
+    int job_id PK, FK
+    int academic_field_id PK, FK
   }
