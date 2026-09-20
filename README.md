@@ -77,7 +77,7 @@
 | テスト | Vitest ＋ Supertest（単体・API）。Playwright は**実施しない** | 生徒フローはテストシナリオ（手動・実機）で担保 |
 | ログ | pino（`NODE_ENV` で出力を切替） | |
 
-選定理由・比較・リスクは [`docs/技術選定.md`](./docs/技術選定.md)。
+選定理由・比較・リスクは [`docs/技術選定.md`](./docs/plan/技術選定.md)。
 
 ---
 
