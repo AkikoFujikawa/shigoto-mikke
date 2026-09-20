@@ -1,0 +1,60 @@
+erDiagram
+  direction LR
+  students ||--o{ diagnoses : "takes"
+  diagnoses ||--o{ diagnosis_interests : "has"
+  diagnoses ||--o{ diagnosis_answers : "has"
+  diagnoses ||--o{ diagnosis_strengths : "has"
+  diagnoses ||--o{ diagnosis_jobs : "recommends"
+  jobs ||--o{ diagnosis_jobs : "recommended"
+  interests ||--o{ diagnosis_interests : "chosen"
+  traits ||--o{ diagnosis_strengths : "result"
+  question_options ||--o{ diagnosis_answers : "selected"
+  questions ||--o{ diagnosis_answers : "answered"
+  students {
+    int id PK
+  }
+  diagnoses {
+    int id PK
+    int student_id FK
+    string input_hash
+    string ai_model
+    boolean used_fallback
+    datetime created_at
+  }
+  diagnosis_interests {
+    int diagnosis_id PK, FK
+    int interest_id PK, FK
+  }
+  diagnosis_answers {
+    int diagnosis_id PK, FK
+    int question_id PK, FK
+    int option_id FK
+  }
+  diagnosis_strengths {
+    int diagnosis_id PK, FK
+    int rank PK
+    int trait_id FK
+    string description
+  }
+  diagnosis_jobs {
+    int diagnosis_id PK, FK
+    int rank PK
+    int job_id FK
+    int score
+    string why_text
+  }
+  jobs {
+    int id PK
+  }
+  interests {
+    int id PK
+  }
+  traits {
+    int id PK
+  }
+  question_options {
+    int id PK
+  }
+  questions {
+    int id PK
+  }

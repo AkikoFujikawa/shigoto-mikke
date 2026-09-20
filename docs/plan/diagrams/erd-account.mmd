@@ -1,0 +1,35 @@
+erDiagram
+  stripe_events {
+    string event_id PK
+    string type
+    datetime processed_at
+  }
+  schools ||--o{ school_admins : "has"
+  schools ||--o{ students : "has"
+  schools ||--|| contracts : "has"
+  schools {
+    int id PK
+    string name
+    string school_code UK
+  }
+  school_admins {
+    int id PK
+    int school_id FK
+    string firebase_uid UK
+    string email
+  }
+  students {
+    int id PK
+    int school_id FK
+    string nickname
+    datetime created_at
+  }
+  contracts {
+    int id PK
+    int school_id FK
+    enum status "trial / active"
+    datetime trial_ends_at
+    string stripe_customer_id
+    string stripe_subscription_id
+    datetime activated_at
+  }
