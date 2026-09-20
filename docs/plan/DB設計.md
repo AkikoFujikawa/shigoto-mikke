@@ -33,9 +33,9 @@
 
 ![診断のER図](./diagrams/erd-diagnosis.svg)
 
-- 図の元データは `docs/diagrams/*.mmd`（Mermaid）。テーブルを変更したら `.mmd` を直して SVG を再生成する（[Mermaid Live Editor](https://mermaid.live) に貼って SVG を書き出す方法が簡単）。
+- 図の元データは `docs/plan/diagrams/*.mmd`（Mermaid）。テーブルを変更したら `.mmd` を直して SVG を再生成する（[Mermaid Live Editor](https://mermaid.live) に貼って SVG を書き出す方法が簡単）。
 - 図には主なカラムのみ載せている。全カラムは §3 を参照。
-- draw.io 版が必要な場合は `docs/diagrams/erd.drawio` を作成する。
+- draw.io 版が必要な場合は `docs/plan/diagrams/erd.drawio` を作成する。
 - 分類：**アカウント・契約**（schools／school_admins／students／contracts／stripe_events）、**マスタ**（interests／traits／questions／question_options／job_groups／jobs／job_interests／job_traits／academic_fields／job_academic_fields）、**診断**（diagnoses／diagnosis_interests／diagnosis_answers／diagnosis_strengths／diagnosis_jobs）
 
 ---
