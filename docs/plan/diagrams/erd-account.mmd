@@ -1,4 +1,9 @@
 erDiagram
+  stripe_events {
+    string event_id PK
+    string type
+    datetime processed_at
+  }
   schools ||--o{ school_admins : "has"
   schools ||--o{ students : "has"
   schools ||--|| contracts : "has"
@@ -27,9 +32,4 @@ erDiagram
     string stripe_customer_id
     string stripe_subscription_id
     datetime activated_at
-  }
-  stripe_events {
-    string event_id PK
-    string type
-    datetime processed_at
   }
