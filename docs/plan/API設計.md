@@ -105,6 +105,7 @@ Content-Type: application/json
 - 呼び出しのたびに `students` に1行作成し、新しいトークンを発行する（**同じ生徒でも毎回新規**。ログインという概念はない）。
 - フロントは `token` を `sessionStorage` に保存し、以降 `Authorization: Bearer <token>` で送る。**タブを閉じると消える**（結果の再表示はしない方針と整合）。
 - エラー：`SCHOOL_CODE_NOT_FOUND`（404）、`VALIDATION_ERROR`（400）、`RATE_LIMITED`（429。余裕があれば実装）
+- **学校コードの利用可否は、契約状態では制限しない**（契約切れの学校の生徒制限は今回実施しない。要件定義 FR-A05。将来の拡張：[`将来の拡張.md`](./将来の拡張.md)）。
 
 ### 3.2 学校管理者の登録（Firebase）
 
@@ -304,9 +305,11 @@ sequenceDiagram
 - `academics[].category`：`liberal_arts`（文系）／`science`（理系）／`mixed`（複合）。**文理は学問にだけ付け、職業には付けない**。
 - 内部メモの「文理」列は返さない。
 
-#### PUT /v1/jobs/{jobId}/discovered（S）
+#### ~~PUT /v1/jobs/{jobId}/discovered~~（今回は実装しない）
 
-ボディなし。**冪等**（何度呼んでも同じ結果）。`204 No Content`。
+~~ボディなし。冪等（何度呼んでも同じ結果）。`204 No Content`。~~
+
+「知らなかった！」は今回実施しない（要件定義 FR-S07。将来の拡張：[`将来の拡張.md`](./将来の拡張.md)）。
 
 ### 3.7 学校管理者
 
@@ -373,7 +376,7 @@ sequenceDiagram
 | 400 | VALIDATION_ERROR | 入力検証エラー | 入力欄の下に表示 |
 | 401 | UNAUTHORIZED | トークンがない・不正・期限切れ | 生徒：入口（UI-S01）へ／管理者：ログイン画面へ |
 | 403 | FORBIDDEN | ロール不足／未登録ユーザー | 権限エラー、または登録画面へ |
-| 403 | SCHOOL_NOT_AVAILABLE | 契約切れの学校（S） | 「このコードは現在ご利用いただけません」 |
+| ~~403~~ | ~~SCHOOL_NOT_AVAILABLE~~ | ~~契約切れの学校~~ **（今回は実装しない）** | ~~「このコードは現在ご利用いただけません」~~ |
 | 404 | SCHOOL_CODE_NOT_FOUND | 学校コードが存在しない | 「学校コードが見つかりません」 |
 | 404 | JOB_NOT_FOUND / DIAGNOSIS_NOT_FOUND | 対象なし | 共通エラー／診断へ誘導 |
 | 409 | ALREADY_REGISTERED | すでに学校として登録済み（管理者のみ） | 管理画面へ誘導 |
@@ -406,7 +409,7 @@ sequenceDiagram
 | API | 扱い |
 | --- | ---- |
 | `POST /v1/diagnoses` | 同じ入力はキャッシュで同じ結果を返す。二重送信しても診断の行が増えるだけ（過去分は残し、`created_at` が最新の1件を有効とする） |
-| `PUT /v1/jobs/{id}/discovered` | 冪等（PUT） |
+| ~~`PUT /v1/jobs/{id}/discovered`~~ | ~~冪等（PUT）~~ **（今回は実装しない）** |
 | `POST /v1/billing/webhook` | Stripe の `event.id` で二重処理防止 |
 | `POST /v1/students/session` | 冪等ではない（呼ぶたびに新しいセッションを発行。古い `students` 行は定期削除。DB設計 §5） |
 
@@ -441,7 +444,7 @@ sequenceDiagram
 2. ~~診断の履歴を残すか~~ **過去分は削除せず残し、最新を有効とする**（決定。診断の一覧 API は作らない）
 3. ~~質問2の対応~~ ~~特性の同数時のタイブレーク~~ **解決済み**（5問の対応は DB設計 §6.3、同点は `traits.sort_order`）
 4. 職業候補の件数（現在10件）と、最後まで見たあとの表示
-5. 契約切れの学校の生徒の扱い（登録のみ不可か、既存生徒もログイン不可か）
+5. ~~契約切れの学校の生徒の扱い（登録のみ不可か、既存生徒もログイン不可か）~~ 契約切れの生徒制限を実施しないため対象外
 6. ~~職業画像（`imageUrl` の形式）~~ 決定：`/jobs/job-{id}.webp`（フロントの静的ファイルへのパス。API は文字列を返すだけで、画像の配信はフロントが行う）
 7. レート制限（今回は必須としない。追加する場合の具体値は負荷の確認後に確定）
 8. ~~`openapi.yaml` の作成担当~~ 作成しない（本書を仕様とする）
@@ -457,7 +460,7 @@ sequenceDiagram
 | UI-S03 好き・気になるカード | `GET /v1/masters/interests` |
 | UI-S04 自分らしさチェック | `GET /v1/masters/questions`、（5問目で）`POST /v1/diagnoses` |
 | UI-S05 強みのタネ | `POST /v1/diagnoses` の結果／`GET /v1/diagnoses/latest` |
-| UI-S06 職業スワイプ | `GET /v1/diagnoses/latest/jobs`、`PUT /v1/jobs/{id}/discovered` |
+| UI-S06 職業スワイプ | `GET /v1/diagnoses/latest/jobs`（~~`PUT /v1/jobs/{id}/discovered`~~ は今回実装しない） |
 | UI-S07 職業詳細 | `GET /v1/jobs/{id}` |
 | UI-A01 管理者新規登録 | Firebase作成 → `POST /v1/schools/register` |
 | UI-A02 管理者ログイン | Firebase ログイン → `GET /v1/me` |
