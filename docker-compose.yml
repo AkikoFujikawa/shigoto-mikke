@@ -1,0 +1,39 @@
+# ローカル開発用。この段階では postgres と redis のみを起動する。
+# backend / frontend は、それぞれの初期構築（別PR）でこのファイルに追加する。
+#
+# 使い方:
+#   cp .env.example .env
+#   docker compose up -d
+#   docker compose ps
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?.env に POSTGRES_USER を設定してください}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?.env に POSTGRES_PASSWORD を設定してください}
+      POSTGRES_DB: ${POSTGRES_DB:?.env に POSTGRES_DB を設定してください}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
