@@ -189,10 +189,11 @@ pnpm build      # ビルド
 - マスタデータは xlsx を元に seed で投入する。DBを直接手で書き換えない。
 
 ### Git
-- `main` は直接プッシュしない。ブランチを切って PR → 1名以上のレビューで merge。
-- ブランチ名：`feature/◯◯`、`fix/◯◯`、`docs/◯◯`
-- コミットは小さく、意味のある単位で。
-- PR には「何を・なぜ・どう確認したか」を書く。
+運用ルールの正本は [`.github/github-rules-shigotomikke.md`](./.github/github-rules-shigotomikke.md)。PRの書き方は [`.github/pull_request_template.md`](./.github/pull_request_template.md)。ここでは要点だけを示す。
+
+- `main`・`develop` へは直接プッシュしない（GitHub の Web 画面での直接編集・ファイルアップロードも同様）。ブランチを切って PR を作り、レビューを受けてから merge する。
+- レビューは変更の種類別（基準は正本の §6.2）。軽微な修正のみの場合は、AI レビューでも可とする場合あり。
+- ブランチ名・コミット・PRの書き方は、正本と PR テンプレートに従う。
 
 ---
 
@@ -254,6 +255,8 @@ pnpm build      # ビルド
 | [`docs/plan/API設計.md`](./docs/plan/API設計.md) | エンドポイント一覧、リクエスト／レスポンス、エラー、レート制限、認可 |
 | [`docs/plan/DB設計.md`](./docs/plan/DB設計.md) | ER図、テーブル定義、インデックス・制約、保持ルール、seed ルール、Prisma スキーマ案 |
 | [`docs/proposal/`](./docs/proposal) | 企画案（5案）の資料 |
+| [`.github/github-rules-shigotomikke.md`](./.github/github-rules-shigotomikke.md) | GitHub運用ルール（Issue・ブランチ・PR・レビュー・マージ条件。Gitルールの正本） |
+| [`.github/pull_request_template.md`](./.github/pull_request_template.md) | PRテンプレート |
 | （作成予定）テスト設計書・テストシナリオ | 講師要件（MUST）。Week2 から少しずつ作成し、Week4 に実施 |
 | （作成しない）ログ設計／セキュリティ設計／運用設計 | 方針は技術選定・API設計 §6・README §6 に集約 |
 
