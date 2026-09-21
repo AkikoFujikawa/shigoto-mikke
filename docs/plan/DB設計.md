@@ -117,7 +117,7 @@
 | code | varchar(20) | NO | **UQ**：`explore`／`ideate`／`support`／`express`／`craft` |
 | label | varchar(30) | NO | 探究する力／発想する力／人を支える力／表現する力／こだわる力（**正式名称**） |
 | description | varchar(200) | NO | 特性の説明（AI へ渡す文脈・画面の補足に使用） |
-| sort_order | smallint | NO | **同数時のタイブレーク順**を兼ねる（要確認） |
+| sort_order | smallint | NO | **同数時のタイブレーク順**を兼ねる（決定）。値は 探究=1／発想=2／表現=3／人を支える=4／こだわる=5。**小さいほど同点で先に選ばれる**（後ろの特性は同点時に選ばれにくくなる。API設計 §3.5） |
 
 #### questions（自分らしさチェックの質問。5件）
 
@@ -233,7 +233,7 @@
 | カラム名 | 型 | NULL | 説明 |
 | -------- | -- | ---- | ---- |
 | diagnosis_id | int | NO | FK → diagnoses.id（CASCADE） |
-| rank | smallint | NO | 1〜3 |
+| rank | smallint | NO | 1〜3。**保存上の並びで、画面には出さない**（強みは順位なしの同列表示。API設計 §3.5） |
 | trait_id | int | NO | FK → traits.id |
 | description | varchar(200) | NO | AI が生成した短い説明（「〜がありそう」） |
 | （PK） | | | 複合主キー（diagnosis_id, rank） |
@@ -641,7 +641,7 @@ DB ではないが、データの持ち方をそろえるため記載。TTL 切�
 1. ~~生徒の認証方式~~ **案B（学校コード＋ニックネーム）で暫定決定**（`students` は school_id と nickname のみ）
 2. ~~診断の履歴を残すか~~ **過去分は削除せず残す**（決定）
 3. 契約終了・退会後のデータ保持期間（案：90日）
-4. 質問2の選択肢A の特性（express か ideate）と、同数時のタイブレーク順
+4. 質問2の選択肢A の特性（express か ideate）（~~同数時のタイブレーク順~~ は `traits.sort_order` で決定）
 5. ~~職業画像の持ち方~~ **AI生成画像を `public/jobs/` に静的配置し、`image_url` にパスを保持**（決定）
 6. 職業の summary の元データ（xlsx に列を追加するか、description から生成するか）
 7. 案内・お知らせ等の追加テーブルの要否（現時点では不要）
