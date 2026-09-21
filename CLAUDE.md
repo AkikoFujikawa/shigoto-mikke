@@ -94,7 +94,7 @@
 
 ### ディレクトリ構成
 
-[`README.md`](./README.md) の §4 を参照（設計書は `docs/plan/`、企画案は `docs/proposal/`）
+[`README.md`](./README.md) の §4 を参照（設計書は `docs/plan/`）
 
 ### 独自ルール・注意点
 
