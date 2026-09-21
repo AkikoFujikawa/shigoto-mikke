@@ -15,7 +15,7 @@
 * Pull Requestはレビュー可能な小さい単位に分ける
 * 仕様の正本はMVP設計書・API設計書・ER図／DB設計とする
 * IssueやPull Requestへ仕様全文を重複して記載せず、関連資料を参照する
-* 技術検証・PoC結果など、Issue完了後も参照したい情報はGitHub Discussionsへ残す
+* 技術検証・PoC結果など、Issue完了後も参照したい情報は、必要に応じてGitHub Discussionsへ残してよい（任意）
 * チームへ影響する設計変更を担当者だけで確定しない
 
 ---
@@ -215,7 +215,7 @@ close #
 
 ## 9. GitHub Discussions
 
-GitHub Discussionsは、Issue完了後も参照したい技術情報の共有に使用する。Issueは「作業管理」、Discussionsは「技術知見の共有」を主目的とする。
+GitHub Discussionsは、Issue完了後も参照したい技術情報の共有に**使ってもよい（必須ではない）**。使わない場合は、Issue・PR・`docs/`など、チームが参照しやすい場所に残す。Issueは「作業管理」、Discussionsは「技術知見の共有」を主目的とする。
 
 対象例：
 
@@ -269,7 +269,7 @@ BOTレビューを使用する場合も、セルフレビュー・手動確認�
 * 現在のIssue目的に含まれるか確認する
 * 含まれる場合はIssueへ必要な内容を追記する
 * 新しい目的の場合は別Issueを作成する
-* 技術的知見として今後も参照したい場合はDiscussionsへまとめる
+* 技術的知見として今後も参照したい場合は、Discussionsまたは`docs/`などへまとめる（Discussionsは任意）
 * チーム全体へ影響する変更は担当者だけで確定しない
 
 ---
