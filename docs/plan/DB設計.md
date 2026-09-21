@@ -602,7 +602,7 @@ model DiagnosisJob {
   @@map("diagnosis_jobs")
 }
 
-// ※「知らなかった！」は今回実施しないため、以下のモデルは**作らない**（将来の拡張。docs/将来の拡張.md）
+// ※「知らなかった！」は今回実施しないため、以下のモデルは**作らない**（将来の拡張。docs/plan/将来の拡張.md）
 // model JobDiscovery {
 //   studentId Int      @map("student_id")
 //   jobId     Int      @map("job_id")
