@@ -163,6 +163,7 @@ pnpm build      # ビルド
 | `SESSION_SECRET` | 生徒のセッショントークン（JWT）の署名鍵（**サーバー側のみ**） |
 | `OPENAI_API_KEY` | OpenAI（**サーバー側のみ**） |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe（**サーバー側のみ**） |
+| `STRIPE_PRICE_ID` | Stripe（**サーバー側のみ**。一括払い・50,000円（税込）のPrice ID） |
 | `FRONTEND_URL` | CORS 許可元 |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | postgres（docker-compose 用） |
 | `NEXT_PUBLIC_FIREBASE_*` | Firebase Web設定（フロント。管理者ログイン画面のみ） |
@@ -282,7 +283,7 @@ pnpm build      # ビルド
 | 9 | ~~質問2の特性の対応~~ **解決済み**（5問の設問と特性の対応を、各特性2回ずつに揃えて確定。`docs/plan/DB設計.md` §6.3） | マッチング | — |
 | 10 | ~~親向けの関わり方（結果共有）~~ 実施しないと決定 | — | — |
 | 11 | 講師への確認：フロント／バックの分離の範囲、ADVANCEDの評価範囲、フロントの本番もコンテナ必須か | 構成全体 | Week1 |
-| 12 | **有料プランの内容**（価格・期間・一括／定期課金）。Stripe の商品設定とWebhookに影響 | 決済実装 | Week1 |
+| 12 | ~~有料プランの内容~~ **解決済み**（一括払い・1校あたり50,000円（税込）・1年間有効。契約期限切れでも生徒の利用は制限しない。#24） | 決済実装 | — |
 
 ---
 

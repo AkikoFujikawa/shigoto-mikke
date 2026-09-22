@@ -316,6 +316,7 @@ sequenceDiagram
 #### GET /v1/schools/me
 
 ```json
+// 無料体験中／無料体験終了
 {
   "school": { "id": 7, "name": "上田みらい高等学校", "schoolCode": "UEDA123" },
   "contract": {
@@ -324,9 +325,18 @@ sequenceDiagram
     "daysLeft": 18
   }
 }
+
+// 契約中／契約期限切れ
+{
+  "school": { "id": 7, "name": "上田みらい高等学校", "schoolCode": "UEDA123" },
+  "contract": {
+    "status": "active",
+    "activeEndsAt": "2027-10-05T00:00:00Z"
+  }
+}
 ```
 
-`contract.status`：`trial`（無料体験中）／`active`（契約中）／`expired`（無料体験終了）。`daysLeft` は `trial` のときのみ。**状態の判定はサーバー側**（`trialEndsAt` と現在時刻から計算）で、フロントは表示するだけ。
+`contract.status`：`trial`（無料体験中）／`trial_expired`（無料体験終了）／`active`（契約中）／`contract_expired`（契約期限切れ）。`daysLeft` は `trial` のときのみ。`activeEndsAt` は `active`／`contract_expired` のときのみ。**状態の判定はサーバー側**（`trialEndsAt`／`activeEndsAt` と現在時刻から計算。DBには `trial`／`active` の2値のみ保存）で、フロントは表示するだけ。**契約期限切れでも、生徒側のAPI・画面は制限しない**（`FR-A05` は実施しない。この判定は管理画面の表示専用）。
 
 #### POST /v1/billing/checkout-session
 
@@ -337,13 +347,16 @@ sequenceDiagram
 { "url": "https://checkout.stripe.com/c/pay/cs_test_..." }
 ```
 
+- Checkout セッションは `mode: "payment"`（一括払い）、`line_items` は環境変数 `STRIPE_PRICE_ID` の価格（税込50,000円・一回払い）を1点。
+- **`client_reference_id` に `schoolId` を設定する**（Webhookで学校を特定するため）。
 - フロントは `url` へ遷移する。成功／キャンセル時の戻り先は `FRONTEND_URL/admin`（`?checkout=success|cancel`）。
-- すでに `active` の場合は 409 `ALREADY_SUBSCRIBED`。
+- すでに `active` かつ期限内（`active_ends_at` を過ぎていない）の場合は 409 `ALREADY_SUBSCRIBED`。**契約期限切れ（`contract_expired`）の場合は、このAPIをそのまま呼べる**（UI-A03から再度Checkoutに遷移し、更新する。自動更新はしない）。
 
 #### POST /v1/billing/webhook
 
 - Stripe の署名（`Stripe-Signature`）を **生ボディで検証**（不正なら 400）。JSON パースより前に生ボディを保持する設定が必要。
-- 処理するイベントは **`checkout.session.completed` のみ**。学校を特定し、契約を `active` に更新。
+- 処理するイベントは **`checkout.session.completed` のみ**。`payment_status` が `paid` であることを確認し、`client_reference_id`（`schoolId`）から学校を特定する。
+- 契約を更新：`status='active'`、`activatedAt`＝現在時刻、`activeEndsAt`＝`activatedAt`＋1年、支払いID（`stripePaymentIntentId`）を保存（契約更新時は上書き）。
 - **冪等**：処理済みの `event.id` を保存し、二重受信では何もしないで 200 を返す。
 - 戻り：200（処理済み・無視するイベント含む）。
 
