@@ -3,9 +3,7 @@
 import { useEffect, useState } from "react";
 
 type HealthState =
-  | { status: "loading" }
-  | { status: "ok"; body: unknown }
-  | { status: "error"; message: string };
+  { status: "loading" } | { status: "ok"; body: unknown } | { status: "error"; message: string };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
 
