@@ -8,6 +8,7 @@ export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: Number(process.env.PORT ?? 4000),
   frontendUrl: process.env.FRONTEND_URL ?? "http://localhost:3000",
+  redisUrl: process.env.REDIS_URL ?? "redis://localhost:6379",
 } as const;
 
 export const isProduction = env.nodeEnv === "production";

@@ -1,0 +1,387 @@
+/**
+ * backend/prisma/seed.ts
+ *
+ * DB設計.md §6 の投入ルールに従った seed スクリプト。
+ * - 冪等（何度実行しても同じ結果。すべて upsert）
+ * - 不正な値があれば失敗させる（§6.4）
+ *
+ * 投入内容：
+ *   1. interests（12件）／traits（5件）／questions（5件）＋question_options（10件）
+ *      → DB設計.md §6.2・§6.3 の確定値をそのままハードコード
+ *   2. job_groups／academic_fields／jobs（＋ job_interests／job_traits／job_academic_fields）
+ *      → prisma/seed-data/*.json から読み込み（xlsx 未確定のため、現在は空配列）
+ *
+ * 実行方法：
+ *   docker compose exec backend pnpm prisma db seed
+ *   （ローカルで直接動かす場合は `pnpm prisma db seed`。DATABASE_URL の向き先に注意）
+ */
+
+import { PrismaClient, AcademicCategory } from "@prisma/client";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const prisma = new PrismaClient();
+
+// ─────────────────────────────
+// 1. 確定マスタ（DB設計.md §6.2）
+// ─────────────────────────────
+
+// emoji は DB設計.md 本文に値の記載がなく、暫定でラベルに合わせて設定。
+// 画面表示に使う値なので、正式なものが決まり次第チームで確認して差し替える。
+const INTERESTS = [
+  { code: "talk", label: "人と話す", emoji: "💬", sortOrder: 1 },
+  { code: "game", label: "ゲーム", emoji: "🎮", sortOrder: 2 },
+  { code: "health", label: "健康・からだ", emoji: "🏃", sortOrder: 3 },
+  { code: "nature", label: "自然・環境", emoji: "🌿", sortOrder: 4 },
+  { code: "research", label: "調べる・研究", emoji: "🔍", sortOrder: 5 },
+  { code: "art", label: "絵・デザイン", emoji: "🎨", sortOrder: 6 },
+  { code: "making", label: "ものづくり", emoji: "🛠️", sortOrder: 7 },
+  { code: "animal", label: "動物", emoji: "🐾", sortOrder: 8 },
+  { code: "food", label: "食べる・料理", emoji: "🍳", sortOrder: 9 },
+  { code: "space", label: "宇宙・星", emoji: "🌌", sortOrder: 10 },
+  { code: "sports", label: "スポーツ", emoji: "⚽", sortOrder: 11 },
+  { code: "it", label: "PC・IT", emoji: "💻", sortOrder: 12 },
+] as const;
+
+// description は DB設計.md に本文の記載がなく暫定文言。AI へ渡す文脈に使うため、
+// 正式なコピーが決まり次第チームで確認して差し替える（TODO）。
+const TRAITS = [
+  {
+    code: "explore",
+    label: "探究する力",
+    description: "気になることをとことん調べて、仕組みや理由を突き止める力。",
+    sortOrder: 1,
+  },
+  {
+    code: "ideate",
+    label: "発想する力",
+    description: "自分なりの新しいアイデアや方法を考え出す力。",
+    sortOrder: 2,
+  },
+  {
+    code: "express",
+    label: "表現する力",
+    description: "自分の考えをわかりやすく人に伝える力。",
+    sortOrder: 3,
+  },
+  {
+    code: "support",
+    label: "人を支える力",
+    description: "相手の話をじっくり聞いたり、困っている人を助けたりする力。",
+    sortOrder: 4,
+  },
+  {
+    code: "craft",
+    label: "こだわる力",
+    description: "細かいところまで丁寧に仕上げる力。",
+    sortOrder: 5,
+  },
+] as const;
+
+const QUESTIONS = [
+  { id: 1, text: "気になることを見つけたら？", sortOrder: 1 },
+  { id: 2, text: "みんなで何かをするとき、自然とやっているのは？", sortOrder: 2 },
+  { id: 3, text: "何かを作るとき、楽しいのは？", sortOrder: 3 },
+  { id: 4, text: "友だちから相談されたら？", sortOrder: 4 },
+  { id: 5, text: "課題や問題に出会ったら？", sortOrder: 5 },
+] as const;
+
+// DB設計.md §6.3。各特性がちょうど2回ずつ登場する構成を崩さないこと。
+const QUESTION_OPTIONS = [
+  { id: 11, questionId: 1, label: "まず調べて詳しく知りたい", traitCode: "explore", sortOrder: 1 },
+  {
+    id: 12,
+    questionId: 1,
+    label: "まず自分なりのアイデアを考えてみたい",
+    traitCode: "ideate",
+    sortOrder: 2,
+  },
+  {
+    id: 21,
+    questionId: 2,
+    label: "自分の考えをみんなに伝えることが多い",
+    traitCode: "express",
+    sortOrder: 1,
+  },
+  {
+    id: 22,
+    questionId: 2,
+    label: "困っている人に声をかけたり手伝ったりする",
+    traitCode: "support",
+    sortOrder: 2,
+  },
+  { id: 31, questionId: 3, label: "新しいものや方法を考える", traitCode: "ideate", sortOrder: 1 },
+  {
+    id: 32,
+    questionId: 3,
+    label: "細かいところまで丁寧に仕上げる",
+    traitCode: "craft",
+    sortOrder: 2,
+  },
+  {
+    id: 41,
+    questionId: 4,
+    label: "自分の考えをわかりやすく伝える",
+    traitCode: "express",
+    sortOrder: 1,
+  },
+  {
+    id: 42,
+    questionId: 4,
+    label: "まず相手の話をじっくり聞く",
+    traitCode: "support",
+    sortOrder: 2,
+  },
+  {
+    id: 51,
+    questionId: 5,
+    label: "原因や仕組みをじっくり考える",
+    traitCode: "explore",
+    sortOrder: 1,
+  },
+  {
+    id: 52,
+    questionId: 5,
+    label: "細かいところまで確認しながら取り組む",
+    traitCode: "craft",
+    sortOrder: 2,
+  },
+] as const;
+
+// ─────────────────────────────
+// 2. 未確定マスタ（prisma/seed-data/*.json から読み込み）
+// ─────────────────────────────
+
+type JobGroupData = { id: number; name: string; sortOrder: number };
+
+type AcademicFieldData = {
+  name: string;
+  category: "liberal_arts" | "science" | "mixed";
+  representativeTopics?: string | null;
+  sortOrder: number;
+};
+
+type JobData = {
+  id: number;
+  jobGroupId: number;
+  name: string;
+  summary?: string;
+  description: string;
+  imageUrl?: string | null;
+  emoji?: string | null;
+  isPublished?: boolean;
+  interestCodes: string[];
+  traitCodes: string[];
+  academicFieldNames: string[];
+};
+
+const SEED_DATA_DIR = path.join(__dirname, "seed-data");
+
+function readJson<T>(fileName: string): T {
+  const filePath = path.join(SEED_DATA_DIR, fileName);
+  const raw = readFileSync(filePath, "utf-8");
+  return JSON.parse(raw) as T;
+}
+
+// ─────────────────────────────
+// 検証（DB設計.md §6.4：不正な値があれば失敗させる）
+// ─────────────────────────────
+
+function assertValidInterestCodes(codes: string[], context: string) {
+  const validCodes = new Set(INTERESTS.map((i) => i.code));
+  const invalid = codes.filter((c) => !validCodes.has(c as (typeof INTERESTS)[number]["code"]));
+  if (invalid.length > 0) {
+    throw new Error(`[seed] ${context}: 未定義の好きなものタグ: ${invalid.join(", ")}`);
+  }
+}
+
+function assertValidTraitCodes(codes: string[], context: string) {
+  const validCodes = new Set(TRAITS.map((t) => t.code));
+  const invalid = codes.filter((c) => !validCodes.has(c as (typeof TRAITS)[number]["code"]));
+  if (invalid.length > 0) {
+    throw new Error(`[seed] ${context}: 未定義の特性タグ: ${invalid.join(", ")}`);
+  }
+}
+
+async function main() {
+  console.log("[seed] 開始");
+
+  // ---- 1. 確定マスタ ----
+  await prisma.$transaction(async (tx) => {
+    for (const interest of INTERESTS) {
+      await tx.interest.upsert({
+        where: { code: interest.code },
+        create: interest,
+        update: interest,
+      });
+    }
+
+    for (const trait of TRAITS) {
+      await tx.trait.upsert({
+        where: { code: trait.code },
+        create: trait,
+        update: trait,
+      });
+    }
+
+    for (const question of QUESTIONS) {
+      await tx.question.upsert({
+        where: { id: question.id },
+        create: question,
+        update: question,
+      });
+    }
+
+    const traitByCode = new Map(TRAITS.map((t) => [t.code, t]));
+    for (const option of QUESTION_OPTIONS) {
+      const trait = traitByCode.get(option.traitCode);
+      if (!trait) {
+        throw new Error(
+          `[seed] question_options id=${option.id}: 未定義の特性タグ: ${option.traitCode}`,
+        );
+      }
+      const traitRow = await tx.trait.findUniqueOrThrow({ where: { code: trait.code } });
+      await tx.questionOption.upsert({
+        where: { id: option.id },
+        create: {
+          id: option.id,
+          questionId: option.questionId,
+          label: option.label,
+          traitId: traitRow.id,
+          sortOrder: option.sortOrder,
+        },
+        update: {
+          questionId: option.questionId,
+          label: option.label,
+          traitId: traitRow.id,
+          sortOrder: option.sortOrder,
+        },
+      });
+    }
+  });
+  console.log(
+    `[seed] 確定マスタ投入完了: interests=${INTERESTS.length} traits=${TRAITS.length} questions=${QUESTIONS.length} question_options=${QUESTION_OPTIONS.length}`,
+  );
+
+  // ---- 2. 未確定マスタ（空配列なら何もしない） ----
+  const jobGroups = readJson<JobGroupData[]>("job-groups.json");
+  const academicFields = readJson<AcademicFieldData[]>("academic-fields.json");
+  const jobs = readJson<JobData[]>("jobs.json");
+
+  await prisma.$transaction(async (tx) => {
+    for (const group of jobGroups) {
+      await tx.jobGroup.upsert({
+        where: { id: group.id },
+        create: group,
+        update: group,
+      });
+    }
+
+    for (const field of academicFields) {
+      await tx.academicField.upsert({
+        where: { name: field.name },
+        create: {
+          name: field.name,
+          category: field.category as AcademicCategory,
+          representativeTopics: field.representativeTopics ?? null,
+          sortOrder: field.sortOrder,
+        },
+        update: {
+          category: field.category as AcademicCategory,
+          representativeTopics: field.representativeTopics ?? null,
+          sortOrder: field.sortOrder,
+        },
+      });
+    }
+
+    for (const job of jobs) {
+      assertValidInterestCodes(job.interestCodes, `jobs id=${job.id}`);
+      assertValidTraitCodes(job.traitCodes, `jobs id=${job.id}`);
+
+      if (
+        job.interestCodes.length === 0 ||
+        job.traitCodes.length === 0 ||
+        job.academicFieldNames.length === 0
+      ) {
+        throw new Error(
+          `[seed] jobs id=${job.id}: 好きなもの・特性・学問領域のいずれかが空欄です（DB設計.md §6.4）`,
+        );
+      }
+
+      const summary = job.summary ?? job.description.slice(0, 60);
+
+      await tx.job.upsert({
+        where: { id: job.id },
+        create: {
+          id: job.id,
+          jobGroupId: job.jobGroupId,
+          name: job.name,
+          summary,
+          description: job.description,
+          imageUrl: job.imageUrl ?? null,
+          emoji: job.emoji ?? null,
+          isPublished: job.isPublished ?? true,
+        },
+        update: {
+          jobGroupId: job.jobGroupId,
+          name: job.name,
+          summary,
+          description: job.description,
+          imageUrl: job.imageUrl ?? null,
+          emoji: job.emoji ?? null,
+          isPublished: job.isPublished ?? true,
+        },
+      });
+
+      // job_interests / job_traits / job_academic_fields は張り直し
+      // （中間テーブルなので deleteMany → createMany で冪等にする）
+      await tx.jobInterest.deleteMany({ where: { jobId: job.id } });
+      const interestRows = await tx.interest.findMany({
+        where: { code: { in: job.interestCodes } },
+      });
+      await tx.jobInterest.createMany({
+        data: interestRows.map((i) => ({ jobId: job.id, interestId: i.id })),
+      });
+
+      await tx.jobTrait.deleteMany({ where: { jobId: job.id } });
+      const traitRows = await tx.trait.findMany({
+        where: { code: { in: job.traitCodes } },
+      });
+      await tx.jobTrait.createMany({
+        data: traitRows.map((t) => ({ jobId: job.id, traitId: t.id })),
+      });
+
+      await tx.jobAcademicField.deleteMany({ where: { jobId: job.id } });
+      const academicFieldRows = await tx.academicField.findMany({
+        where: { name: { in: job.academicFieldNames } },
+      });
+      if (academicFieldRows.length !== job.academicFieldNames.length) {
+        throw new Error(
+          `[seed] jobs id=${job.id}: academic_fields に存在しない学問領域名が含まれています`,
+        );
+      }
+      await tx.jobAcademicField.createMany({
+        data: academicFieldRows.map((f) => ({ jobId: job.id, academicFieldId: f.id })),
+      });
+    }
+  });
+
+  console.log(
+    `[seed] 未確定マスタ投入完了: job_groups=${jobGroups.length} academic_fields=${academicFields.length} jobs=${jobs.length}` +
+      (jobs.length === 0 ? "（xlsx未確定のため現在は空。別Issueで投入予定）" : ""),
+  );
+
+  console.log("[seed] 完了");
+}
+
+main()
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
