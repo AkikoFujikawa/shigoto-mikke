@@ -140,7 +140,7 @@ docker compose exec backend pnpm prisma db seed
 | -------- | -------------- |
 | frontend | 3000 |
 | backend | 4000 |
-| postgres | 5432 |
+| postgres | 5433（ホスト側。コンテナ内は 5432） |
 | redis | 6379 |
 
 ### よく使うコマンド（予定）
@@ -164,6 +164,11 @@ pnpm build      # ビルド
 | `OPENAI_API_KEY` | OpenAI（**サーバー側のみ**） |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe（**サーバー側のみ**） |
 | `FRONTEND_URL` | CORS 許可元 |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | postgres（docker-compose 用） |
+| `NEXT_PUBLIC_FIREBASE_*` | Firebase Web設定（フロント。管理者ログイン画面のみ） |
+| `NEXT_PUBLIC_API_BASE_URL` | フロントから呼ぶ API のURL |
+
+> `backend/.env.example` には、backend 単体で動かす場合の `PORT`（既定 4000）もある（通常はルートの `.env` を docker-compose 経由で使うため不要）。
 
 **秘密のキーは絶対に Git にコミットしない。フロントに露出させない（`NEXT_PUBLIC_` を付けない）。**
 
