@@ -1,0 +1,325 @@
+// backend/prisma/schema.prisma
+// DB設計.md §7 のたたき台をベースに、実際に動く形へ調整したもの。
+// 調整点（設計と相違がある場合は要確認）：
+//   - enum は Postgres 側で snake_case の型名になるよう @@map を付与
+//     （素案のままだと Postgres 上の型名が "ContractStatus" になってしまうため、
+//      §1 の命名規則「テーブルは snake_case」に合わせた）
+//   - generator/datasource を複数行に展開（素案は1行表記だった）
+//   - それ以外はテーブル定義（§3）・インデックス（§4）に忠実
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ContractStatus {
+  trial
+  active
+
+  @@map("contract_status")
+}
+
+enum AcademicCategory {
+  liberal_arts
+  science
+  mixed
+
+  @@map("academic_category")
+}
+
+// ─────────────────────────────
+// 3.1 アカウント・契約
+// ─────────────────────────────
+
+model School {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(50)
+  schoolCode String   @unique @map("school_code") @db.VarChar(20)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  admins   SchoolAdmin[]
+  students Student[]
+  contract Contract?
+
+  @@map("schools")
+}
+
+model SchoolAdmin {
+  id          Int      @id @default(autoincrement())
+  schoolId    Int      @map("school_id")
+  firebaseUid String   @unique @map("firebase_uid") @db.VarChar(128)
+  email       String   @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId])
+  @@map("school_admins")
+}
+
+model Student {
+  id        Int      @id @default(autoincrement())
+  schoolId  Int      @map("school_id")
+  nickname  String   @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  school    School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  diagnoses Diagnosis[]
+  // discoveries JobDiscovery[] // 「知らなかった！」は今回作らない（DB設計.md §3.3 末尾）
+
+  @@index([schoolId])
+  @@index([createdAt])
+  @@map("students")
+}
+
+model Contract {
+  id                   Int            @id @default(autoincrement())
+  schoolId             Int            @unique @map("school_id")
+  status               ContractStatus @default(trial)
+  trialEndsAt          DateTime       @map("trial_ends_at") @db.Timestamptz
+  stripeCustomerId     String?        @map("stripe_customer_id") @db.VarChar(64)
+  stripeSubscriptionId String?        @map("stripe_subscription_id") @db.VarChar(64)
+  activatedAt          DateTime?      @map("activated_at") @db.Timestamptz
+  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@map("contracts")
+}
+
+model StripeEvent {
+  eventId     String   @id @map("event_id") @db.VarChar(64)
+  type        String   @db.VarChar(64)
+  processedAt DateTime @default(now()) @map("processed_at") @db.Timestamptz
+
+  @@map("stripe_events")
+}
+
+// ─────────────────────────────
+// 3.2 マスタ（seed で投入。xlsx が元）
+// ─────────────────────────────
+
+model Interest {
+  id        Int    @id @default(autoincrement())
+  code      String @unique @db.VarChar(30)
+  label     String @db.VarChar(30)
+  emoji     String @db.VarChar(8)
+  sortOrder Int    @map("sort_order") @db.SmallInt
+
+  jobs      JobInterest[]
+  diagnoses DiagnosisInterest[]
+
+  @@map("interests")
+}
+
+model Trait {
+  id          Int    @id @default(autoincrement())
+  code        String @unique @db.VarChar(20)
+  label       String @db.VarChar(30)
+  description String @db.VarChar(200)
+  sortOrder   Int    @map("sort_order") @db.SmallInt
+
+  jobs      JobTrait[]
+  options   QuestionOption[]
+  strengths DiagnosisStrength[]
+
+  @@map("traits")
+}
+
+model Question {
+  id        Int    @id
+  text      String @db.VarChar(100)
+  sortOrder Int    @map("sort_order") @db.SmallInt
+
+  options QuestionOption[]
+  answers DiagnosisAnswer[]
+
+  @@map("questions")
+}
+
+model QuestionOption {
+  id         Int     @id
+  questionId Int     @map("question_id")
+  label      String  @db.VarChar(100)
+  emoji      String? @db.VarChar(8)
+  traitId    Int     @map("trait_id")
+  sortOrder  Int     @map("sort_order") @db.SmallInt
+
+  question Question          @relation(fields: [questionId], references: [id])
+  trait    Trait             @relation(fields: [traitId], references: [id])
+  answers  DiagnosisAnswer[]
+
+  @@map("question_options")
+}
+
+model JobGroup {
+  id        Int    @id
+  name      String @db.VarChar(50)
+  sortOrder Int    @map("sort_order") @db.SmallInt
+
+  jobs Job[]
+
+  @@map("job_groups")
+}
+
+model Job {
+  id          Int      @id
+  jobGroupId  Int      @map("job_group_id")
+  name        String   @db.VarChar(60)
+  summary     String   @db.VarChar(120)
+  description String
+  imageUrl    String?  @map("image_url") @db.VarChar(255)
+  emoji       String?  @db.VarChar(8)
+  isPublished Boolean  @default(true) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  group       JobGroup           @relation(fields: [jobGroupId], references: [id])
+  interests   JobInterest[]
+  traits      JobTrait[]
+  academics   JobAcademicField[]
+  recommended DiagnosisJob[]
+  // discoveries JobDiscovery[] // 「知らなかった！」は今回作らない
+
+  @@map("jobs")
+}
+
+model JobInterest {
+  jobId      Int @map("job_id")
+  interestId Int @map("interest_id")
+
+  job      Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  interest Interest @relation(fields: [interestId], references: [id])
+
+  @@id([jobId, interestId])
+  @@index([interestId])
+  @@map("job_interests")
+}
+
+model JobTrait {
+  jobId   Int @map("job_id")
+  traitId Int @map("trait_id")
+
+  job   Job   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  trait Trait @relation(fields: [traitId], references: [id])
+
+  @@id([jobId, traitId])
+  @@index([traitId])
+  @@map("job_traits")
+}
+
+model AcademicField {
+  id                   Int              @id @default(autoincrement())
+  name                 String           @unique @db.VarChar(40)
+  category             AcademicCategory
+  representativeTopics String?          @map("representative_topics") @db.VarChar(200)
+  sortOrder            Int              @map("sort_order") @db.SmallInt
+
+  jobs JobAcademicField[]
+
+  @@map("academic_fields")
+}
+
+model JobAcademicField {
+  jobId           Int @map("job_id")
+  academicFieldId Int @map("academic_field_id")
+
+  job           Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  academicField AcademicField @relation(fields: [academicFieldId], references: [id])
+
+  @@id([jobId, academicFieldId])
+  @@map("job_academic_fields")
+}
+
+// ─────────────────────────────
+// 3.3 診断
+// ─────────────────────────────
+
+model Diagnosis {
+  id           Int      @id @default(autoincrement())
+  studentId    Int      @map("student_id")
+  inputHash    String   @map("input_hash") @db.Char(64)
+  aiModel      String?  @map("ai_model") @db.VarChar(40)
+  usedFallback Boolean  @default(false) @map("used_fallback")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  student   Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  interests DiagnosisInterest[]
+  answers   DiagnosisAnswer[]
+  strengths DiagnosisStrength[]
+  jobs      DiagnosisJob[]
+
+  @@index([studentId, createdAt(sort: Desc)])
+  @@index([inputHash])
+  @@map("diagnoses")
+}
+
+model DiagnosisInterest {
+  diagnosisId Int @map("diagnosis_id")
+  interestId  Int @map("interest_id")
+
+  diagnosis Diagnosis @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
+  interest  Interest  @relation(fields: [interestId], references: [id])
+
+  @@id([diagnosisId, interestId])
+  @@map("diagnosis_interests")
+}
+
+model DiagnosisAnswer {
+  diagnosisId Int @map("diagnosis_id")
+  questionId  Int @map("question_id")
+  optionId    Int @map("option_id")
+
+  diagnosis Diagnosis      @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
+  question  Question       @relation(fields: [questionId], references: [id])
+  option    QuestionOption @relation(fields: [optionId], references: [id])
+
+  @@id([diagnosisId, questionId])
+  @@map("diagnosis_answers")
+}
+
+model DiagnosisStrength {
+  diagnosisId Int    @map("diagnosis_id")
+  rank        Int    @db.SmallInt
+  traitId     Int    @map("trait_id")
+  description String @db.VarChar(200)
+
+  diagnosis Diagnosis @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
+  trait     Trait     @relation(fields: [traitId], references: [id])
+
+  @@id([diagnosisId, rank])
+  @@map("diagnosis_strengths")
+}
+
+model DiagnosisJob {
+  diagnosisId Int    @map("diagnosis_id")
+  rank        Int    @db.SmallInt
+  jobId       Int    @map("job_id")
+  score       Int    @db.SmallInt
+  whyText     String @map("why_text") @db.VarChar(300)
+
+  diagnosis Diagnosis @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
+  job       Job       @relation(fields: [jobId], references: [id])
+
+  @@id([diagnosisId, rank])
+  @@unique([diagnosisId, jobId])
+  @@map("diagnosis_jobs")
+}
+
+// 「知らなかった！」は今回作らない（DB設計.md §3.3 末尾、将来の拡張。docs/plan/将来の拡張.md）
+// model JobDiscovery {
+//   studentId Int      @map("student_id")
+//   jobId     Int      @map("job_id")
+//   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+//   student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+//   job       Job      @relation(fields: [jobId], references: [id])
+//   @@id([studentId, jobId])
+//   @@map("job_discoveries")
+// }
