@@ -69,7 +69,7 @@
 | DB | PostgreSQL（Neon） | |
 | キャッシュ | Redis | 職業・質問・好きなものマスタのキャッシュから |
 | 認証 | 管理者：Firebase Authentication／生徒：**認証なし（学校コード＋ニックネームのセッションJWT）** | 案Bで暫定決定（チーム確認後に確定） |
-| AI | OpenAI API（軽量モデル）＋ Structured Outputs | サーバーからのみ呼び出す。モデル名はWeek1で確定 |
+| AI | OpenRouter 経由（`openai/gpt-oss-120b`）＋ Structured Outputs | サーバーからのみ呼び出す。配布APIキー（コース共有・予算はスクール負担） |
 | 決済 | Stripe Checkout（テストモード）＋ Webhook | 独自決済画面は作らない |
 | コンテナ | Docker / Docker Compose | |
 | ホスティング | フロント：Vercel／API：Render（Docker）／DB：Neon／Redis：Render または Upstash | 本番はHTTPS |
@@ -126,7 +126,7 @@ shigoto-mikke/
 ```bash
 # 1. 環境変数を用意
 cp .env.example .env
-# Firebase / Stripe / OpenAI のキーを設定（Slack等の安全な手段で共有。Gitに含めない）
+# Firebase / Stripe / OpenRouter のキーを設定（Slack等の安全な手段で共有。Gitに含めない）
 
 # 2. 全サービスを起動（frontend / backend / postgres / redis）
 docker compose up -d
@@ -161,7 +161,7 @@ pnpm build      # ビルド
 | `REDIS_URL` | Redis 接続 |
 | `FIREBASE_*` | Firebase Admin SDK（サーバー）／Firebase Web設定（フロント。**管理者ログインのみ**） |
 | `SESSION_SECRET` | 生徒のセッショントークン（JWT）の署名鍵（**サーバー側のみ**） |
-| `OPENAI_API_KEY` | OpenAI（**サーバー側のみ**） |
+| `OPENROUTER_API_KEY` | OpenRouter（**サーバー側のみ**。コース配布の共有キー） |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe（**サーバー側のみ**） |
 | `FRONTEND_URL` | CORS 許可元 |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | postgres（docker-compose 用） |
@@ -275,7 +275,7 @@ pnpm build      # ビルド
 | 2 | 「次の行動」表示の要否（ロードマップ復活か、職業詳細への1行追加か） | 画面・要件 | Week1 |
 | 3 | ~~職業画像の方針~~ **AI生成で決定**（制作中）。残る確認：AI画像の利用規約・権利、全職業の画像が揃う期限 | データ準備 | Week1 |
 | 4 | ~~独自ドメインの取得~~ **取得しない方針**（提供ドメインで HTTPS）。講師に評価範囲を確認 | ADVANCED（サブドメイン） | Week1 |
-| 5 | OpenAI の利用モデルと月額上限、アカウント | AI連携 | Week1 |
+| 5 | ~~OpenAI の利用モデルと月額上限、アカウント~~ **解決済み**（OpenRouter経由・`openai/gpt-oss-120b`に確定。月額上限はスクール負担の共有キーのため、チームで管理する数字ではない。#29） | AI連携 | — |
 | 6 | ~~無料体験終了後の生徒の扱い~~ 契約切れの生徒制限を実施しないため対象外 | — | — |
 | 7 | ~~診断結果の履歴を残すか~~ 結果の再表示を実施しないため対象外 | — | — |
 | 8 | 職業マスタの最終件数（現在39件。文言・画像の仕上げが間に合うか） | データ準備 | Week2 |

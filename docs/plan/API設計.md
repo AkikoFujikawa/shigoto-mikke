@@ -228,7 +228,7 @@ sequenceDiagram
   participant A as Express
   participant R as Redis
   participant D as PostgreSQL
-  participant O as OpenAI
+  participant O as OpenRouter
   F->>A: POST /v1/diagnoses
   A->>A: 認証・認可・入力検証
   A->>R: （任意）レート制限チェック / 同一入力のキャッシュ確認
