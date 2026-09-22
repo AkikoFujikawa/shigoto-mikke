@@ -7,6 +7,23 @@
 #   docker compose ps
 
 services:
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
