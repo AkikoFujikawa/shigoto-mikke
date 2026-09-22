@@ -82,10 +82,11 @@
 | -------- | -- | ---- | ---------- | ---- |
 | id | int | NO | 自動採番 | PK |
 | school_id | int | NO | | FK → schools.id（ON DELETE CASCADE）。**UQ**（学校ごとに1件） |
-| status | enum contract_status | NO | 'trial' | `trial`（無料体験）／`active`（契約中）。**`expired`（無料体験終了）は保存せず、`status='trial'` かつ `trial_ends_at` を過ぎたらサーバーで判定する** |
+| status | enum contract_status | NO | 'trial' | `trial`（無料体験）／`active`（契約中）。**画面表示用の `trial_expired`（無料体験終了）／`contract_expired`（契約期限切れ）は保存せず、サーバーで判定する**（`trial_expired`：`status='trial'` かつ `trial_ends_at` 経過／`contract_expired`：`status='active'` かつ `active_ends_at` 経過） |
 | trial_ends_at | timestamptz | NO | | 無料体験終了日時 ＝ 学校登録日時 ＋ 30日 |
+| active_ends_at | timestamptz | YES | | 契約の有効期限 ＝ `activated_at` ＋ 1年（一括払い・1年間有効。Webhook処理時に設定） |
 | stripe_customer_id | varchar(64) | YES | | Stripe の顧客ID |
-| stripe_subscription_id | varchar(64) | YES | | Stripe のサブスクリプションID（または支払いID） |
+| stripe_payment_intent_id | varchar(64) | YES | | Stripe の支払いID（一括払い。旧 `stripe_subscription_id` から改名） |
 | activated_at | timestamptz | YES | | 契約開始（Webhook 処理）日時 |
 | created_at / updated_at | timestamptz | NO | now() | |
 
@@ -409,16 +410,17 @@ model Student {
 }
 
 model Contract {
-  id                   Int            @id @default(autoincrement())
-  schoolId             Int            @unique @map("school_id")
-  status               ContractStatus @default(trial)
-  trialEndsAt          DateTime       @map("trial_ends_at") @db.Timestamptz
-  stripeCustomerId     String?        @map("stripe_customer_id") @db.VarChar(64)
-  stripeSubscriptionId String?        @map("stripe_subscription_id") @db.VarChar(64)
-  activatedAt          DateTime?      @map("activated_at") @db.Timestamptz
-  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt            DateTime       @updatedAt @map("updated_at") @db.Timestamptz
-  school               School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id                    Int            @id @default(autoincrement())
+  schoolId              Int            @unique @map("school_id")
+  status                ContractStatus @default(trial)
+  trialEndsAt           DateTime       @map("trial_ends_at") @db.Timestamptz
+  activeEndsAt          DateTime?      @map("active_ends_at") @db.Timestamptz
+  stripeCustomerId      String?        @map("stripe_customer_id") @db.VarChar(64)
+  stripePaymentIntentId String?        @map("stripe_payment_intent_id") @db.VarChar(64)
+  activatedAt           DateTime?      @map("activated_at") @db.Timestamptz
+  createdAt             DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  school                School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   @@map("contracts")
 }
 
