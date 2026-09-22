@@ -6,11 +6,7 @@ import { validationResult } from "express-validator";
  * API設計 §4 のエラーフォーマットに合わせる。
  * ルート定義の直前（バリデーションルールの後）に置いて使う。
  */
-export function handleValidationErrors(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
+export function handleValidationErrors(req: Request, res: Response, next: NextFunction): void {
   const result = validationResult(req);
   if (result.isEmpty()) {
     next();
