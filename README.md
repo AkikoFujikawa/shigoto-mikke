@@ -31,7 +31,7 @@
 ### P1：講師要件の最小実装（MUST）
 - Web アプリ、**フロントとバックエンドを分離**
 - コンテナ利用（Docker）
-- キャッシュサーバー（Redis）… **職業マスタのキャッシュのみ**
+- キャッシュサーバー（Redis）… **職業・質問・好きなものマスタのキャッシュのみ**
 - 決済（Stripe）… **管理者画面から Checkout に遷移する最小実装（テストモード）**
 - XSS／SQL インジェクション対策
 - 単体テストのテストコード
@@ -67,7 +67,7 @@
 | バックエンド | Express ＋ **express-validator**（入力検証） | 検証なしのルートを作らない。Zod は使わない |
 | ORM | Prisma | SQL は原則書かない（生SQLは禁止寄り） |
 | DB | PostgreSQL（Neon） | |
-| キャッシュ | Redis | まず職業マスタのキャッシュから |
+| キャッシュ | Redis | 職業・質問・好きなものマスタのキャッシュから |
 | 認証 | 管理者：Firebase Authentication／生徒：**認証なし（学校コード＋ニックネームのセッションJWT）** | 案Bで暫定決定（チーム確認後に確定） |
 | AI | OpenAI API（軽量モデル）＋ Structured Outputs | サーバーからのみ呼び出す。モデル名はWeek1で確定 |
 | 決済 | Stripe Checkout（テストモード）＋ Webhook | 独自決済画面は作らない |
@@ -140,7 +140,7 @@ docker compose exec backend pnpm prisma db seed
 | -------- | -------------- |
 | frontend | 3000 |
 | backend | 4000 |
-| postgres | 5432 |
+| postgres | 5433（ホスト側。コンテナ内は 5432） |
 | redis | 6379 |
 
 ### よく使うコマンド（予定）
@@ -164,6 +164,11 @@ pnpm build      # ビルド
 | `OPENAI_API_KEY` | OpenAI（**サーバー側のみ**） |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe（**サーバー側のみ**） |
 | `FRONTEND_URL` | CORS 許可元 |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | postgres（docker-compose 用） |
+| `NEXT_PUBLIC_FIREBASE_*` | Firebase Web設定（フロント。管理者ログイン画面のみ） |
+| `NEXT_PUBLIC_API_BASE_URL` | フロントから呼ぶ API のURL |
+
+> `backend/.env.example` には、backend 単体で動かす場合の `PORT`（既定 4000）もある（通常はルートの `.env` を docker-compose 経由で使うため不要）。
 
 **秘密のキーは絶対に Git にコミットしない。フロントに露出させない（`NEXT_PUBLIC_` を付けない）。**
 
