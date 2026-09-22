@@ -1,0 +1,33 @@
+# --- 秘密情報 ---
+.env
+.env.local
+.env.production
+.env.*.local
+
+# --- 依存関係・生成物 ---
+node_modules/
+.pnpm-store/
+dist/
+build/
+.next/
+out/
+coverage/
+
+# --- Prisma ---
+# schema.prisma とマイグレーションファイルは Git 管理する。生成物のみ除外
+backend/prisma/generated/
+
+# --- ログ ---
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# --- エディタ・OS ---
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- テスト ---
+.nyc_output/
