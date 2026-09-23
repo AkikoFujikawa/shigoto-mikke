@@ -8,7 +8,7 @@
 - **スタイル**：REST（JSON）。フロント（Next.js）とバックエンド（Express）は別オリジン。CORS は `FRONTEND_URL` のみ許可。
 - **バージョニング**：URL 埋め込み `/v1/...`
 - **認証方式**：`Authorization: Bearer <token>` で送る。**トークンの種類はロールごとに異なる**。
-  - **学校管理者**：**Firebase Authentication の ID トークン**。サーバーは Admin SDK で検証し、Firebase UID から **DB の `school_admins` を引いて**学校IDを決定する（custom claims は使わない）。DB に紐づかない UID は、登録 API（`POST /v1/schools/register`）以外すべて 403。
+  - **学校管理者**：**Firebase Authentication の ID トークン**。サーバーは Admin SDK で検証し、Firebase UID から **DB の `school_admins` を引いて**学校IDを決定する（custom claims は使わない）。DB に紐づかない UID は、すべて 403（**管理者の自己登録は廃止**。#11で決定。学校・管理者はseedで用意する）。
   - **生徒**：**認証なし（案B）**。`POST /v1/students/session` に学校コードとニックネームを送ると、サーバーが**セッショントークン（JWT・HS256・有効期限8時間）**を発行する。JWT の中身は生徒ID（`sub`）・学校ID・ロールのみ（個人情報は入れない）。署名鍵は環境変数 `SESSION_SECRET`。
   - **ルートごとに受け付けるトークンが決まっている**（生徒のルートは生徒のセッショントークンのみ、管理者のルートは Firebase ID トークンのみ）。
 - **命名・形式**：パスは複数形の名詞、JSON は camelCase、日時は ISO 8601（UTC、例 `2026-10-04T00:00:00Z`）、ID は数値（一部 UUID は DB 設計で確定）。
@@ -47,7 +47,7 @@
 
 | メソッド | パス | 概要 | 認証 | 関連画面 |
 | -------- | ---- | ---- | ---- | -------- |
-| POST | /v1/schools/register | 学校を作成し管理者として登録。学校コード発行・30日無料体験開始 | 要（未登録） | UI-A01 |
+| ~~POST~~ | ~~/v1/schools/register~~ | ~~学校を作成し管理者として登録~~ **（今回は実装しない。#11で決定。学校・管理者はseedで用意する）** | — | — |
 | GET | /v1/schools/me | 自校の情報（学校名・学校コード・契約状態・残日数） | 管理者 | UI-A03 |
 | POST | /v1/billing/checkout-session | Stripe Checkout セッションを作成し遷移先URLを返す | 管理者 | UI-A03 |
 
@@ -66,7 +66,6 @@
 | /v1/health | ○ | ○ | ○ | ○ |
 | /v1/me | × | ×（403） | ○ | ○ |
 | /v1/students/session | ○ | ○ | ○ | ○ |
-| /v1/schools/register | × | ○ | × | ×（409） |
 | /v1/masters/*, /v1/diagnoses*, /v1/jobs/* | × | × | ○ | × |
 | /v1/schools/me, /v1/billing/checkout-session | × | × | × | ○ |
 | /v1/billing/webhook | 署名のみ | — | — | — |
@@ -107,31 +106,9 @@ Content-Type: application/json
 - エラー：`SCHOOL_CODE_NOT_FOUND`（404）、`VALIDATION_ERROR`（400）、`RATE_LIMITED`（429。余裕があれば実装）
 - **学校コードの利用可否は、契約状態では制限しない**（契約切れの学校の生徒制限は今回実施しない。要件定義 FR-A05。将来の拡張：[`将来の拡張.md`](./将来の拡張.md)）。
 
-### 3.2 学校管理者の登録（Firebase）
+### 3.2 学校管理者の登録
 
-1. フロントが Firebase で `createUserWithEmailAndPassword`（メール・パスワード）。
-2. 取得した ID トークンを付けて `POST /v1/schools/register`。
-3. サーバーが学校を作成して DB に登録して初めて、管理者向け API が使えるようになる。
-
-#### POST /v1/schools/register
-
-```http
-POST /v1/schools/register
-Authorization: Bearer <Firebase ID token>
-Content-Type: application/json
-
-{ "schoolName": "上田みらい高等学校" }
-```
-
-検証：`schoolName` 必須・1〜50文字。
-
-```json
-// 201 Created
-{
-  "school": { "id": 7, "name": "上田みらい高等学校", "schoolCode": "UEDA123" },
-  "contract": { "status": "trial", "trialEndsAt": "2026-10-19T00:00:00Z" }
-}
-```
+**管理者の自己登録は実装しない（#11で決定）。** 学校・学校管理者・契約は、すべてseedスクリプトで投入する（デモ用に、無料体験中／無料体験終了／契約中／契約期限切れの4パターンを用意する）。管理者は、事前にFirebaseコンソールで作成したアカウントで、UI-A02からログインする。
 
 学校コードは英数字6文字程度・重複不可で自動発行（紛らわしい `0/O`・`1/I` は除外）。
 
@@ -417,7 +394,7 @@ sequenceDiagram
 | 対象 | 制限（案） | キー |
 | ---- | ---------- | ---- |
 | `POST /v1/diagnoses`（AI呼び出し） | **1ユーザーあたり 5回／10分**、キャッシュヒット時はカウントしない | ユーザーID |
-| `POST /v1/students/session`、`/schools/register` | 10回／10分（学校コードの総当たり対策） | IP |
+| `POST /v1/students/session` | 10回／10分（学校コードの総当たり対策） | IP |
 | 上記以外の全 API | 120回／分 | ユーザーID（未認証はIP） |
 
 - 超過時は 429 と `Retry-After` ヘッダーを返す。
@@ -483,6 +460,5 @@ sequenceDiagram
 | UI-S05 強みのタネ | `POST /v1/diagnoses` の結果／`GET /v1/diagnoses/latest` |
 | UI-S06 職業スワイプ | `GET /v1/diagnoses/latest/jobs`（~~`PUT /v1/jobs/{id}/discovered`~~ は今回実装しない） |
 | UI-S07 職業詳細 | `GET /v1/jobs/{id}` |
-| UI-A01 管理者新規登録 | Firebase作成 → `POST /v1/schools/register` |
 | UI-A02 管理者ログイン | Firebase ログイン → `GET /v1/me` |
 | UI-A03 管理画面 | `GET /v1/schools/me`、`POST /v1/billing/checkout-session` |
