@@ -79,15 +79,18 @@ model Student {
 }
 
 model Contract {
-  id                   Int            @id @default(autoincrement())
-  schoolId             Int            @unique @map("school_id")
-  status               ContractStatus @default(trial)
-  trialEndsAt          DateTime       @map("trial_ends_at") @db.Timestamptz
-  stripeCustomerId     String?        @map("stripe_customer_id") @db.VarChar(64)
-  stripeSubscriptionId String?        @map("stripe_subscription_id") @db.VarChar(64)
-  activatedAt          DateTime?      @map("activated_at") @db.Timestamptz
-  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt            DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  id                    Int            @id @default(autoincrement())
+  schoolId              Int            @unique @map("school_id")
+  status                ContractStatus @default(trial)
+  trialEndsAt           DateTime       @map("trial_ends_at") @db.Timestamptz
+  // 契約の有効期限（一括払い・1年間有効）＝ activatedAt + 1年。DB設計.md §3.1・#24で決定
+  activeEndsAt          DateTime?      @map("active_ends_at") @db.Timestamptz
+  stripeCustomerId      String?        @map("stripe_customer_id") @db.VarChar(64)
+  // 一括払いのため、サブスクリプションIDではなく支払いID（旧 stripeSubscriptionId から改名。#24）
+  stripePaymentIntentId String?        @map("stripe_payment_intent_id") @db.VarChar(64)
+  activatedAt           DateTime?      @map("activated_at") @db.Timestamptz
+  createdAt             DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime       @updatedAt @map("updated_at") @db.Timestamptz
 
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
