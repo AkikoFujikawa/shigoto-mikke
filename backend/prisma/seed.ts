@@ -10,6 +10,11 @@
  *      → DB設計.md §6.2・§6.3 の確定値をそのままハードコード
  *   2. job_groups／academic_fields／jobs（＋ job_interests／job_traits／job_academic_fields）
  *      → prisma/seed-data/*.json から読み込み（xlsx 未確定のため、現在は空配列）
+ *   3. デモ用の学校／学校管理者／契約（4パターン：無料体験中・無料体験終了・契約中・契約期限切れ）
+ *      → 管理者の自己登録は廃止（#11）。UI-A03 の表示確認・デモ用に、このseedで用意する
+ *      → ⚠️ school_admins.firebase_uid はプレースホルダー。実際にログインを試すには、
+ *         Firebaseコンソールで対応するメールアドレスのアカウントを作成し、
+ *         発行されたUIDに DEMO_SCHOOLS の値を書き換えること
  *
  * 実行方法：
  *   docker compose exec backend pnpm prisma db seed
@@ -179,6 +184,91 @@ type JobData = {
 };
 
 const SEED_DATA_DIR = path.join(__dirname, "seed-data");
+
+// ─────────────────────────────
+// デモ用の学校・学校管理者・契約（#11：管理者の自己登録は廃止し、seedで用意する）
+// ─────────────────────────────
+
+function daysFromNow(days: number): Date {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + days);
+  return d;
+}
+
+type DemoSchool = {
+  schoolCode: string;
+  name: string;
+  adminEmail: string;
+  // ⚠️ プレースホルダー。Firebaseコンソールで実アカウントを作成し、発行されたUIDに書き換える
+  firebaseUid: string;
+  contract: {
+    status: "trial" | "active";
+    trialEndsAt: Date;
+    activeEndsAt: Date | null;
+    stripeCustomerId: string | null;
+    stripePaymentIntentId: string | null;
+    activatedAt: Date | null;
+  };
+};
+
+const DEMO_SCHOOLS: DemoSchool[] = [
+  {
+    schoolCode: "DEMOTRIAL",
+    name: "デモ高等学校（無料体験中）",
+    adminEmail: "demo-trial@example.com",
+    firebaseUid: "REPLACE_WITH_FIREBASE_UID_TRIAL",
+    contract: {
+      status: "trial",
+      trialEndsAt: daysFromNow(18),
+      activeEndsAt: null,
+      stripeCustomerId: null,
+      stripePaymentIntentId: null,
+      activatedAt: null,
+    },
+  },
+  {
+    schoolCode: "DEMOEXPIRED",
+    name: "デモ高等学校（無料体験終了）",
+    adminEmail: "demo-expired@example.com",
+    firebaseUid: "REPLACE_WITH_FIREBASE_UID_EXPIRED",
+    contract: {
+      status: "trial",
+      trialEndsAt: daysFromNow(-5),
+      activeEndsAt: null,
+      stripeCustomerId: null,
+      stripePaymentIntentId: null,
+      activatedAt: null,
+    },
+  },
+  {
+    schoolCode: "DEMOACTIVE",
+    name: "デモ高等学校（契約中）",
+    adminEmail: "demo-active@example.com",
+    firebaseUid: "REPLACE_WITH_FIREBASE_UID_ACTIVE",
+    contract: {
+      status: "active",
+      trialEndsAt: daysFromNow(-60),
+      activeEndsAt: daysFromNow(335), // activatedAt（30日前）＋1年
+      stripeCustomerId: "cus_demo_active_dummy",
+      stripePaymentIntentId: "pi_demo_active_dummy",
+      activatedAt: daysFromNow(-30),
+    },
+  },
+  {
+    schoolCode: "DEMORENEW",
+    name: "デモ高等学校（契約期限切れ）",
+    adminEmail: "demo-renew@example.com",
+    firebaseUid: "REPLACE_WITH_FIREBASE_UID_RENEW",
+    contract: {
+      status: "active",
+      trialEndsAt: daysFromNow(-430),
+      activeEndsAt: daysFromNow(-35), // activatedAt（400日前）＋1年
+      stripeCustomerId: "cus_demo_renew_dummy",
+      stripePaymentIntentId: "pi_demo_renew_dummy",
+      activatedAt: daysFromNow(-400),
+    },
+  },
+];
 
 function readJson<T>(fileName: string): T {
   const filePath = path.join(SEED_DATA_DIR, fileName);
@@ -372,6 +462,36 @@ async function main() {
   console.log(
     `[seed] 未確定マスタ投入完了: job_groups=${jobGroups.length} academic_fields=${academicFields.length} jobs=${jobs.length}` +
       (jobs.length === 0 ? "（xlsx未確定のため現在は空。別Issueで投入予定）" : ""),
+  );
+
+  // ---- 3. デモ用の学校・学校管理者・契約 ----
+  // 管理者の自己登録は廃止（#11で決定）。UI-A03の4状態（無料体験中／無料体験終了／
+  // 契約中／契約期限切れ）を確認・デモできるよう、状態違いの学校を4件用意する。
+  await prisma.$transaction(async (tx) => {
+    for (const demo of DEMO_SCHOOLS) {
+      const school = await tx.school.upsert({
+        where: { schoolCode: demo.schoolCode },
+        create: { name: demo.name, schoolCode: demo.schoolCode },
+        update: { name: demo.name },
+      });
+
+      await tx.schoolAdmin.upsert({
+        where: { firebaseUid: demo.firebaseUid },
+        create: { schoolId: school.id, firebaseUid: demo.firebaseUid, email: demo.adminEmail },
+        update: { schoolId: school.id, email: demo.adminEmail },
+      });
+
+      await tx.contract.upsert({
+        where: { schoolId: school.id },
+        create: { schoolId: school.id, ...demo.contract },
+        update: { ...demo.contract },
+      });
+    }
+  });
+  console.log(`[seed] デモ校投入完了: schools=${DEMO_SCHOOLS.length}`);
+  console.log(
+    "[seed]  ⚠️ school_admins.firebase_uid はプレースホルダーのままです。" +
+      "ログイン確認には、Firebaseコンソールで対応アカウントを作成しUIDを書き換えてください。",
   );
 
   console.log("[seed] 完了");
