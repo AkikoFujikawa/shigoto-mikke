@@ -247,7 +247,7 @@
 | rank | smallint | NO | おすすめ順（1〜10） |
 | job_id | int | NO | FK → jobs.id |
 | score | smallint | NO | マッチングのスコア（**監視・デバッグ用。API では返さない**） |
-| why_text | varchar(300) | NO | 「なぜあなたにつながる？」（AI 生成。失敗時はタグから組み立てた定型文） |
+| why_text | varchar(300) | NO | 「なぜあなたにつながる？」（AIは使わず、タグの一致からテンプレートで組み立てる。#30で決定） |
 | （PK） | | | 複合主キー（diagnosis_id, rank）／UQ（diagnosis_id, job_id） |
 
 #### job_discoveries（「知らなかった！」。**今回は作らない**）
