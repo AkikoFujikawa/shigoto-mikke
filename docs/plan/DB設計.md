@@ -154,8 +154,8 @@
 | id | int | NO | PK（xlsx の ID と同じ値で投入） |
 | job_group_id | int | NO | FK → job_groups.id |
 | name | varchar(60) | NO | 職業名 |
-| summary | varchar(120) | NO | スワイプ画面用の短い説明（2〜3行）。xlsx に列がないため、初期は「仕事内容」の先頭を使う |
-| description | text | NO | 職業詳細の「どんな仕事？」（xlsx「仕事内容」） |
+| summary | varchar(120) | NO | スワイプ画面用の短い説明（2〜3行）。xlsx「仕事内容（下書き）」 |
+| description | text | NO | 職業詳細の「どんな仕事？」（xlsx「仕事内容（あきこ案）」） |
 | image_url | varchar(255) | YES | 画像のパス（例：`/jobs/job-7.webp`）。AI生成画像をフロントの `public/jobs/` に置く。NULL の場合は `emoji` で代替 |
 | emoji | varchar(8) | YES | 画像がない場合の代替 |
 | is_published | boolean | NO | 既定 true。false は表示・推薦の対象外 |
@@ -313,7 +313,7 @@ xlsx → seed の対応と検証。seed は**冪等**（何度実行しても同
 | 好きなもの・特性タグ シートの12種 | interests（`code` は下表） |
 | 特性タグ5種 | traits |
 | 職業マスタ一覧「高校生向け8分野」 | job_groups（先頭の番号を `sort_order`） |
-| 職業マスタ一覧「ID」「職業名」「仕事内容（下書き）」 | jobs.id／name／description（summary は description から生成） |
+| 職業マスタ一覧「ID」「職業名」「仕事内容（あきこ案）」「仕事内容（下書き）」 | jobs.id／name／description／summary |
 | 「好きなものタグ」（カンマ区切り） | job_interests |
 | 「特性タグ」（カンマ区切り） | job_traits |
 | 「学問領域タグ」（カンマ区切り） | job_academic_fields |
@@ -647,5 +647,5 @@ DB ではないが、データの持ち方をそろえるため記載。TTL 切�
 3. 契約終了・退会後のデータ保持期間（案：90日）
 4. ~~質問2の選択肢A の特性（express か ideate）~~ ~~同数時のタイブレーク順~~ **解決済み**（質問2は表現／人を支える。同点は `traits.sort_order`）
 5. ~~職業画像の持ち方~~ **AI生成画像を `public/jobs/` に静的配置し、`image_url` にパスを保持**（決定）
-6. 職業の summary の元データ（xlsx に列を追加するか、description から生成するか）
+6. ~~職業の summary の元データ~~ **解決済み**（summary＝xlsx「仕事内容（下書き）」、description＝「仕事内容（あきこ案）」。#53）
 7. 案内・お知らせ等の追加テーブルの要否（現時点では不要）
