@@ -4,6 +4,7 @@ type InputProps = {
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
+  type?: "text" | "password";
 };
 
 export default function Input({
@@ -12,13 +13,14 @@ export default function Input({
   value,
   onChange,
   disabled = false,
+  type = "text",
 }: InputProps) {
   return (
     <label className="block w-full">
       {label && <span className="mb-sm block font-semibold text-navy">{label}</span>}
 
       <input
-        type="text"
+        type={type}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
