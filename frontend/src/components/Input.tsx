@@ -15,9 +15,7 @@ export default function Input({
 }: InputProps) {
   return (
     <label className="block w-full">
-      {label && (
-        <span className="mb-sm block font-semibold text-navy">{label}</span>
-      )}
+      {label && <span className="mb-sm block font-semibold text-navy">{label}</span>}
 
       <input
         type="text"

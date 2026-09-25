@@ -4,11 +4,7 @@ type ButtonProps = {
   disabled?: boolean;
 };
 
-export default function Button({
-  children,
-  onClick,
-  disabled = false,
-}: ButtonProps) {
+export default function Button({ children, onClick, disabled = false }: ButtonProps) {
   return (
     <button
       type="button"
