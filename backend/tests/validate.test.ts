@@ -3,7 +3,7 @@ import { body } from "express-validator";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 
-import { handleValidationErrors } from "./validate.js";
+import { handleValidationErrors } from "../src/middlewares/validate.js";
 
 describe("handleValidationErrors", () => {
   const app = express();
