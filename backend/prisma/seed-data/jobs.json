@@ -332,7 +332,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["research"],
-    "traitCodes": ["explore"],
+    "traitCodes": ["explore", "craft"],
     "academicFieldNames": ["経営学・マーケティング", "データサイエンス", "統計学"]
   },
   {
