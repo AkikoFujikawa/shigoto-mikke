@@ -12,6 +12,9 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
+# pnpm install の時点では prisma/schema.prisma が無く Prisma Client が作られないため、ここで生成する
+RUN pnpm exec prisma generate
+
 EXPOSE 4000
 
 CMD ["pnpm", "dev"]
