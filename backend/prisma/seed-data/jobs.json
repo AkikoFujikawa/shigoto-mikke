@@ -20,7 +20,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["research"],
-    "traitCodes": ["explore"],
+    "traitCodes": ["explore", "craft"],
     "academicFieldNames": ["データサイエンス", "情報学", "統計学"]
   },
   {
@@ -44,7 +44,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["game"],
-    "traitCodes": ["ideate"],
+    "traitCodes": ["ideate", "explore"],
     "academicFieldNames": ["情報学", "データサイエンス", "経営学・マーケティング"]
   },
   {
@@ -116,7 +116,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["talk"],
-    "traitCodes": ["support"],
+    "traitCodes": ["support", "craft"],
     "academicFieldNames": ["語学・文学", "教育学"]
   },
   {
@@ -188,7 +188,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["health"],
-    "traitCodes": ["explore"],
+    "traitCodes": ["explore", "craft"],
     "academicFieldNames": ["医学・看護学"]
   },
   {
@@ -224,7 +224,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["health", "talk"],
-    "traitCodes": ["support"],
+    "traitCodes": ["support", "explore"],
     "academicFieldNames": ["医学・看護学"]
   },
   {
@@ -272,7 +272,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["talk"],
-    "traitCodes": ["support"],
+    "traitCodes": ["support", "ideate"],
     "academicFieldNames": ["教育学", "心理学"]
   },
   {
@@ -284,7 +284,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["talk"],
-    "traitCodes": ["support"],
+    "traitCodes": ["support", "express"],
     "academicFieldNames": ["心理学", "社会学・メディア学"]
   },
   {
@@ -416,7 +416,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["talk"],
-    "traitCodes": ["support"],
+    "traitCodes": ["support", "ideate"],
     "academicFieldNames": ["法学", "経営学・マーケティング"]
   },
   {
