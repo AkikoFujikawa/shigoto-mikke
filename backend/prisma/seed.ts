@@ -514,5 +514,9 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
-    await redis.quit();
+    try {
+      await redis.quit();
+    } catch (err) {
+      console.error("[seed] Redis切断時にエラー（無視して終了）:", err);
+    }
   });
