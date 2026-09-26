@@ -34,19 +34,18 @@ const prisma = new PrismaClient();
 // 1. 確定マスタ（DB設計.md §6.2）
 // ─────────────────────────────
 
-// emoji は DB設計.md 本文に値の記載がなく、暫定でラベルに合わせて設定。
-// 画面表示に使う値なので、正式なものが決まり次第チームで確認して差し替える。
+// emoji は画面設計のワイヤーフレーム（UI-S03）に合わせて確定（#89）。
 const INTERESTS = [
   { code: "talk", label: "人と話す", emoji: "💬", sortOrder: 1 },
   { code: "game", label: "ゲーム", emoji: "🎮", sortOrder: 2 },
-  { code: "health", label: "健康・からだ", emoji: "🏃", sortOrder: 3 },
-  { code: "nature", label: "自然・環境", emoji: "🌿", sortOrder: 4 },
-  { code: "research", label: "調べる・研究", emoji: "🔍", sortOrder: 5 },
+  { code: "health", label: "健康・からだ", emoji: "💪", sortOrder: 3 },
+  { code: "nature", label: "自然・環境", emoji: "🌱", sortOrder: 4 },
+  { code: "research", label: "調べる・研究", emoji: "🔬", sortOrder: 5 },
   { code: "art", label: "絵・デザイン", emoji: "🎨", sortOrder: 6 },
-  { code: "making", label: "ものづくり", emoji: "🛠️", sortOrder: 7 },
+  { code: "making", label: "ものづくり", emoji: "🔧", sortOrder: 7 },
   { code: "animal", label: "動物", emoji: "🐾", sortOrder: 8 },
   { code: "food", label: "食べる・料理", emoji: "🍳", sortOrder: 9 },
-  { code: "space", label: "宇宙・星", emoji: "🌌", sortOrder: 10 },
+  { code: "space", label: "宇宙・星", emoji: "🌙", sortOrder: 10 },
   { code: "sports", label: "スポーツ", emoji: "⚽", sortOrder: 11 },
   { code: "it", label: "PC・IT", emoji: "💻", sortOrder: 12 },
 ] as const;
@@ -95,12 +94,21 @@ const QUESTIONS = [
 ] as const;
 
 // DB設計.md §6.3。各特性がちょうど2回ずつ登場する構成を崩さないこと。
+// emoji は #89 で確定（Q1・Q5はワイヤーフレーム、Q2〜Q4はチーム決定。Q5のBは✅）。
 const QUESTION_OPTIONS = [
-  { id: 11, questionId: 1, label: "まず調べて詳しく知りたい", traitCode: "explore", sortOrder: 1 },
+  {
+    id: 11,
+    questionId: 1,
+    label: "まず調べて詳しく知りたい",
+    emoji: "🔎",
+    traitCode: "explore",
+    sortOrder: 1,
+  },
   {
     id: 12,
     questionId: 1,
     label: "まず自分なりのアイデアを考えてみたい",
+    emoji: "✨",
     traitCode: "ideate",
     sortOrder: 2,
   },
@@ -108,6 +116,7 @@ const QUESTION_OPTIONS = [
     id: 21,
     questionId: 2,
     label: "自分の考えをみんなに伝えることが多い",
+    emoji: "🗣️",
     traitCode: "express",
     sortOrder: 1,
   },
@@ -115,14 +124,23 @@ const QUESTION_OPTIONS = [
     id: 22,
     questionId: 2,
     label: "困っている人に声をかけたり手伝ったりする",
+    emoji: "🤝",
     traitCode: "support",
     sortOrder: 2,
   },
-  { id: 31, questionId: 3, label: "新しいものや方法を考える", traitCode: "ideate", sortOrder: 1 },
+  {
+    id: 31,
+    questionId: 3,
+    label: "新しいものや方法を考える",
+    emoji: "🚀",
+    traitCode: "ideate",
+    sortOrder: 1,
+  },
   {
     id: 32,
     questionId: 3,
     label: "細かいところまで丁寧に仕上げる",
+    emoji: "✂️",
     traitCode: "craft",
     sortOrder: 2,
   },
@@ -130,6 +148,7 @@ const QUESTION_OPTIONS = [
     id: 41,
     questionId: 4,
     label: "自分の考えをわかりやすく伝える",
+    emoji: "📣",
     traitCode: "express",
     sortOrder: 1,
   },
@@ -137,6 +156,7 @@ const QUESTION_OPTIONS = [
     id: 42,
     questionId: 4,
     label: "まず相手の話をじっくり聞く",
+    emoji: "👂",
     traitCode: "support",
     sortOrder: 2,
   },
@@ -144,6 +164,7 @@ const QUESTION_OPTIONS = [
     id: 51,
     questionId: 5,
     label: "原因や仕組みをじっくり考える",
+    emoji: "⚙️",
     traitCode: "explore",
     sortOrder: 1,
   },
@@ -151,6 +172,7 @@ const QUESTION_OPTIONS = [
     id: 52,
     questionId: 5,
     label: "細かいところまで確認しながら取り組む",
+    emoji: "✅",
     traitCode: "craft",
     sortOrder: 2,
   },
@@ -340,12 +362,14 @@ async function main() {
           id: option.id,
           questionId: option.questionId,
           label: option.label,
+          emoji: option.emoji,
           traitId: traitRow.id,
           sortOrder: option.sortOrder,
         },
         update: {
           questionId: option.questionId,
           label: option.label,
+          emoji: option.emoji,
           traitId: traitRow.id,
           sortOrder: option.sortOrder,
         },
