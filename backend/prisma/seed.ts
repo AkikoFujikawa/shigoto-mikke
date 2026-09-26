@@ -25,6 +25,7 @@ import { PrismaClient, AcademicCategory } from "@prisma/client";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { redis } from "../src/lib/redis.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -356,6 +357,15 @@ async function main() {
     `[seed] 確定マスタ投入完了: interests=${INTERESTS.length} traits=${TRAITS.length} questions=${QUESTIONS.length} question_options=${QUESTION_OPTIONS.length}`,
   );
 
+  // interests・questions を更新したので、キャッシュ（#57）を削除する。
+  // Redisが落ちていてもseed自体は失敗させない（redis.ts の設計方針に合わせる）。
+  try {
+    await redis.del("masters:interests", "masters:questions");
+    console.log("[seed] マスタキャッシュ削除完了");
+  } catch (err) {
+    console.error("[seed] マスタキャッシュ削除に失敗（Redis未接続の可能性）:", err);
+  }
+
   // ---- 2. 未確定マスタ（空配列なら何もしない） ----
   const jobGroups = readJson<JobGroupData[]>("job-groups.json");
   const academicFields = readJson<AcademicFieldData[]>("academic-fields.json");
@@ -504,4 +514,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await redis.quit();
   });
