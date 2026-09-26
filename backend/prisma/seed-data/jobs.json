@@ -32,7 +32,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["research"],
-    "traitCodes": ["explore"],
+    "traitCodes": ["explore", "craft"],
     "academicFieldNames": ["情報学"]
   },
   {
@@ -56,7 +56,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["nature"],
-    "traitCodes": ["explore"],
+    "traitCodes": ["explore", "express"],
     "academicFieldNames": ["地球科学"]
   },
   {
@@ -80,7 +80,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["space"],
-    "traitCodes": ["explore", "ideate"],
+    "traitCodes": ["explore", "ideate", "craft"],
     "academicFieldNames": ["工学（機械・電気）", "地球科学"]
   },
   {
@@ -92,7 +92,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["food", "research"],
-    "traitCodes": ["ideate", "explore"],
+    "traitCodes": ["ideate", "explore", "craft"],
     "academicFieldNames": ["農学・生命科学", "栄養学"]
   },
   {
@@ -140,7 +140,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["game"],
-    "traitCodes": ["ideate", "express"],
+    "traitCodes": ["ideate", "express", "craft"],
     "academicFieldNames": ["情報学", "美術・デザイン"]
   },
   {
@@ -152,7 +152,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["art"],
-    "traitCodes": ["express"],
+    "traitCodes": ["express", "craft"],
     "academicFieldNames": ["美術・デザイン"]
   },
   {
@@ -176,7 +176,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["health"],
-    "traitCodes": ["explore", "support"],
+    "traitCodes": ["explore", "support", "craft"],
     "academicFieldNames": ["医学・看護学", "工学（機械・電気）"]
   },
   {
@@ -200,7 +200,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["health", "talk"],
-    "traitCodes": ["support"],
+    "traitCodes": ["support", "express"],
     "academicFieldNames": ["医学・看護学", "教育学"]
   },
   {
@@ -248,7 +248,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["talk"],
-    "traitCodes": ["support"],
+    "traitCodes": ["support", "express"],
     "academicFieldNames": ["心理学", "教育学"]
   },
   {
@@ -260,7 +260,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["talk"],
-    "traitCodes": ["support"],
+    "traitCodes": ["support", "express"],
     "academicFieldNames": ["教育学", "心理学"]
   },
   {
@@ -296,7 +296,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["talk"],
-    "traitCodes": ["express", "support"],
+    "traitCodes": ["express", "support", "craft"],
     "academicFieldNames": ["社会学・メディア学", "経営学・マーケティング", "心理学"]
   },
   {
@@ -344,7 +344,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["it", "research"],
-    "traitCodes": ["ideate", "express"],
+    "traitCodes": ["ideate", "express", "craft"],
     "academicFieldNames": ["経営学・マーケティング", "社会学・メディア学"]
   },
   {
@@ -368,7 +368,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["sports"],
-    "traitCodes": ["support"],
+    "traitCodes": ["support", "express"],
     "academicFieldNames": ["スポーツ科学", "栄養学"]
   },
   {
@@ -404,7 +404,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["making"],
-    "traitCodes": ["ideate", "explore"],
+    "traitCodes": ["ideate", "explore", "craft"],
     "academicFieldNames": ["建築学", "工学（機械・電気）"]
   },
   {
@@ -428,7 +428,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["making"],
-    "traitCodes": ["explore"],
+    "traitCodes": ["explore", "craft"],
     "academicFieldNames": ["工学（機械・電気）"]
   },
   {
@@ -440,7 +440,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["making", "nature"],
-    "traitCodes": ["explore", "ideate"],
+    "traitCodes": ["explore", "ideate", "craft"],
     "academicFieldNames": ["工学（機械・電気）", "情報学", "地理学"]
   },
   {
@@ -452,7 +452,7 @@
     "imageUrl": null,
     "emoji": null,
     "interestCodes": ["space", "it", "research"],
-    "traitCodes": ["explore"],
+    "traitCodes": ["explore", "craft"],
     "academicFieldNames": ["情報学", "データサイエンス", "統計学", "地球科学", "地理学"]
   },
   {
