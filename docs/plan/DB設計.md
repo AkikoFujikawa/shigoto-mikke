@@ -207,7 +207,7 @@
 | student_id | int | NO | | FK → students.id（ON DELETE CASCADE） |
 | input_hash | char(64) | NO | | 入力（好きなものID・回答）の SHA-256。キャッシュキーと重複判定に使用 |
 | ai_model | varchar(40) | YES | | 生成に使ったモデル名（フォールバック時は NULL） |
-| used_fallback | boolean | NO | false | AI 出力が不正／不足で定型文に置換したか（監視用） |
+| used_fallback | boolean | NO | false | AI の失敗・タイムアウト・不正な出力で、固定文（`traits.description`）に置換したか（監視用） |
 | created_at | timestamptz | NO | now() | 診断日時 |
 
 > **有効な診断＝生徒ごとに `created_at` が最新の1件**。**過去の診断は削除せず残す**（決定。診断の一覧・再表示は作らない。生徒は30日後に `students` ごと削除され、診断も連動して消える）。
