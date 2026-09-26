@@ -244,6 +244,8 @@ sequenceDiagram
 
 #### GET /v1/diagnoses/latest/jobs
 
+診断がなければ `404 DIAGNOSIS_NOT_FOUND`（`GET /v1/diagnoses/latest` と同じ）。
+
 ```json
 {
   "items": [
