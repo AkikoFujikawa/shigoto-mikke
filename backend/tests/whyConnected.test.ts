@@ -46,7 +46,7 @@ describe("buildWhyConnected", () => {
     );
   });
 
-  it("どちらも一致しない場合、共通の文を返す", () => {
+  it("どちらも一致しない場合は、共通の文を返す", () => {
     const text = buildWhyConnected({
       selectedInterests: [SPACE],
       strengthTraits: [EXPLORE],

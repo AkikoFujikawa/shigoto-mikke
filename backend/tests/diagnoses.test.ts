@@ -96,7 +96,9 @@ describe("POST /v1/diagnoses", () => {
     const res = await request(createApp()).post("/v1/diagnoses").send(VALID_BODY);
 
     expect(res.status).toBe(401);
-    expect(res.body.error.code).toBe("UNAUTHORIZED");
+    expect(res.body).toEqual({
+      error: { code: "UNAUTHORIZED", message: "もう一度はじめからお試しください" },
+    });
   });
 
   it("interestIds が0個の場合は、400 VALIDATION_ERROR を返す", async () => {
