@@ -360,7 +360,7 @@ async function main() {
   // interests・questions を更新したので、キャッシュ（#57）を削除する。
   // Redisが落ちていてもseed自体は失敗させない（redis.ts の設計方針に合わせる）。
   try {
-    await redis.del("masters:interests", "masters:questions");
+    await redis.del("master:interests", "master:questions");
     console.log("[seed] マスタキャッシュ削除完了");
   } catch (err) {
     console.error("[seed] マスタキャッシュ削除に失敗（Redis未接続の可能性）:", err);

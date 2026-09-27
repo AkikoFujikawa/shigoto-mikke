@@ -64,8 +64,8 @@ describe("GET /v1/masters/interests", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({
-      items: [{ id: 1, code: "talk", label: "人と話す", emoji: "💬" }],
+    expect(res.body).toEqual({ 
+      items: [{ id: 1, code: "talk", label: "人と話す", emoji: "💬" }] 
     });
   });
 });
@@ -112,11 +112,11 @@ describe("GET /v1/masters/questions", () => {
       items: [
         {
           id: 1,
-          text: "気になることを見つけたら？",
           options: [
-            { id: 11, label: "まず調べて詳しく知りたい", emoji: null },
-            { id: 12, label: "まず自分なりのアイデアを考えてみたい", emoji: null },
+            { id: 11, emoji: null, label: "まず調べて詳しく知りたい" },
+            { id: 12, emoji: null, label: "まず自分なりのアイデアを考えてみたい" },
           ],
+          text: "気になることを見つけたら？",
         },
       ],
     });
