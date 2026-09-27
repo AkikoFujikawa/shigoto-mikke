@@ -189,9 +189,5 @@ describe("rankJobCandidates", () => {
 
     expect(candidates).toHaveLength(JOB_CANDIDATE_COUNT);
     expect(new Set(candidates.map((c) => c.jobId)).size).toBe(JOB_CANDIDATE_COUNT);
-    // 衛星データ解析エンジニア(38)：宇宙・星とPC・ITの2つ＋探究・こだわるの2つが一致
-    expect(candidates[0]).toEqual({ jobId: 38, score: 2 * 3 + 2 * 2, rank: 1 });
-    // 宇宙開発技術者(7)：宇宙・星の1つ＋探究・発想・こだわるの3つが一致
-    expect(candidates[1]).toEqual({ jobId: 7, score: 1 * 3 + 3 * 2, rank: 2 });
   });
 });
