@@ -1,29 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import Button from "@/components/Button";
 import PageShell from "@/components/PageShell";
 
-const interests = [
-  { id: "space", emoji: "🌙", label: "宇宙・星" },
-  { id: "it", emoji: "💻", label: "PC・IT" },
-  { id: "animal", emoji: "🐾", label: "動物" },
-  { id: "game", emoji: "🎮", label: "ゲーム" },
-  { id: "talk", emoji: "💬", label: "人と話す" },
-  { id: "food", emoji: "🍳", label: "食べる・料理" },
-  { id: "sports", emoji: "⚽", label: "スポーツ" },
-  { id: "art", emoji: "🎨", label: "絵・デザイン" },
-  { id: "nature", emoji: "🌱", label: "自然・環境" },
-  { id: "health", emoji: "💪", label: "健康・からだ" },
-  { id: "research", emoji: "🔬", label: "調べる・研究" },
-  { id: "making", emoji: "🔧", label: "ものづくり" },
-];
+type Interest = {
+  id: number;
+  code: string;
+  label: string;
+  emoji: string;
+};
 
 export default function InterestsPage() {
-  const [selected, setSelected] = useState<string[]>([]);
+  const [interests, setInterests] = useState<Interest[]>([]);
+  const [selected, setSelected] = useState<number[]>([]);
   const [message, setMessage] = useState("");
 
-  const handleSelect = (id: string) => {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+
+  useEffect(() => {
+    const fetchInterests = async () => {
+      try {
+        const token = sessionStorage.getItem("studentToken");
+
+        if (!token) {
+          setMessage("セッションが切れました。もう一度はじめからお試しください");
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/v1/masters/interests`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          setMessage("好きなものを読み込めませんでした");
+          return;
+        }
+
+        const data: Interest[] = await response.json();
+        setInterests(data);
+      } catch {
+        setMessage("通信に失敗しました。もう一度お試しください");
+      }
+    };
+
+    fetchInterests();
+  }, [API_BASE_URL]);
+
+  const handleSelect = (id: number) => {
     if (selected.includes(id)) {
       setSelected(selected.filter((item) => item !== id));
       setMessage("");
@@ -58,9 +85,11 @@ export default function InterestsPage() {
 
           {/* タイトル */}
           <div className="mb-2 text-center">
-            <img
+            <Image
               src="/characters/tanecchi/S03.png"
               alt="たねっち"
+              width={64}
+              height={64}
               className="absolute right-0 top-12 h-16 w-auto"
             />
             <h1 className="text-xl font-bold leading-relaxed text-gray-900">

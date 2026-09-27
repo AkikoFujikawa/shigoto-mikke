@@ -6,6 +6,7 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Input from "@/components/Input";
 import PageShell from "@/components/PageShell";
+import Image from "next/image";
 
 export default function HomePage() {
   const router = useRouter();
@@ -83,7 +84,13 @@ export default function HomePage() {
           </div>
 
           <div className="relative z-0 mb-16 flex justify-center translate-y-20">
-            <img src="/characters/tanecchi/peek S01.png" alt="たねっち" className="w-36" />
+            <Image
+              src="/characters/tanecchi/peek_S01.png"
+              alt="たねっち"
+              width={144}
+              height={144}
+              className="w-36 h-auto"
+            />
           </div>
 
           {/* 入力カード */}
