@@ -1,4 +1,4 @@
-# 開発用（本番最適化のmulti-stage buildは別Issueで検討）
+# 開発用（Docker Compose）。本番のフロントは Vercel にデプロイするため、このイメージは本番では使わない
 FROM node:20-alpine
 
 WORKDIR /app
