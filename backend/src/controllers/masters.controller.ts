@@ -3,14 +3,14 @@ import { prisma } from "../lib/prisma.js";
 import { redis } from "../lib/redis.js";
 
 const CACHE_TTL_SECONDS = 60 * 60;
-const INTERESTS_CACHE_KEY = "masters:interests";
+const INTERESTS_CACHE_KEY = "master:interests";
 
 export async function getInterests(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const cached = await getCached(INTERESTS_CACHE_KEY);
     if (cached) {
-      res.set("Cache-Control", `public, max-age=${CACHE_TTL_SECONDS}`);
-      res.status(200).json(cached);
+      res.set("Cache-Control", `max-age=${CACHE_TTL_SECONDS}`);
+      res.status(200).json({ items: cached });
       return;
     }
 
@@ -21,8 +21,8 @@ export async function getInterests(req: Request, res: Response, next: NextFuncti
 
     await setCached(INTERESTS_CACHE_KEY, interests);
 
-    res.set("Cache-Control", `public, max-age=${CACHE_TTL_SECONDS}`);
-    res.status(200).json(interests);
+    res.set("Cache-Control", `max-age=${CACHE_TTL_SECONDS}`);
+    res.status(200).json({ items: interests });
   } catch (err) {
     next(err);
   }
@@ -46,14 +46,14 @@ async function setCached(key: string, value: unknown): Promise<void> {
   }
 }
 
-const QUESTIONS_CACHE_KEY = "masters:questions";
+const QUESTIONS_CACHE_KEY = "master:questions";
 
 export async function getQuestions(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const cached = await getCached(QUESTIONS_CACHE_KEY);
     if (cached) {
-      res.set("Cache-Control", `public, max-age=${CACHE_TTL_SECONDS}`);
-      res.status(200).json(cached);
+      res.set("Cache-Control", `max-age=${CACHE_TTL_SECONDS}`);
+      res.status(200).json({ items: cached });
       return;
     }
 
@@ -71,8 +71,8 @@ export async function getQuestions(req: Request, res: Response, next: NextFuncti
 
     await setCached(QUESTIONS_CACHE_KEY, questions);
 
-    res.set("Cache-Control", `public, max-age=${CACHE_TTL_SECONDS}`);
-    res.status(200).json(questions);
+    res.set("Cache-Control", `max-age=${CACHE_TTL_SECONDS}`);
+    res.status(200).json({ items: questions });
   } catch (err) {
     next(err);
   }
