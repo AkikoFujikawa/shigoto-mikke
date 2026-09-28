@@ -47,8 +47,6 @@ export default function InterestsPage() {
         }
 
         const data = await response.json();
-        console.log("取得データ:", data);
-        console.log("itemsは配列？", Array.isArray(data.items));
         setInterests(Array.isArray(data.items) ? data.items : []);
       } catch {
         setMessage("通信に失敗しました。もう一度お試しください");

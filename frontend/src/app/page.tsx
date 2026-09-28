@@ -84,7 +84,7 @@ export default function HomePage() {
         className="min-h-screen bg-bottom bg-no-repeat bg-cover "
         style={{ backgroundImage: "url('/backgrounds/S01.png')" }}
       >
-        <div className="flex flex-col gap-mg">
+        <div className="flex flex-col gap-md">
           {/* ロゴ・キャッチコピー */}
           <div className="pt-lg text-center">
             <h1 className="text-3xl font-bold text-brand"> しごとみっけ🔎 </h1>
