@@ -25,6 +25,7 @@ import { PrismaClient, AcademicCategory } from "@prisma/client";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { redis } from "../src/lib/redis.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -50,37 +51,38 @@ const INTERESTS = [
   { code: "it", label: "PC・IT", emoji: "💻", sortOrder: 12 },
 ] as const;
 
-// description は DB設計.md に本文の記載がなく暫定文言。AI へ渡す文脈に使うため、
-// 正式なコピーが決まり次第チームで確認して差し替える（TODO）。
+// description は生徒向けの「〜がありそう」形式（1文・200文字以内・全生徒で同じ文言）。
+// AI へ渡す文脈と、AI が使えないときの固定文を兼ねる（案A。#86）。
+// 探究・発想・人を支えるは API設計.md のレスポンス例と同じ文言。
 const TRAITS = [
   {
     code: "explore",
     label: "探究する力",
-    description: "気になることをとことん調べて、仕組みや理由を突き止める力。",
+    description: "気になったことを「もっと知りたい！」と、深く調べられるところがありそう。",
     sortOrder: 1,
   },
   {
     code: "ideate",
     label: "発想する力",
-    description: "自分なりの新しいアイデアや方法を考え出す力。",
+    description: "新しいアイデアや方法を考えることを楽しめるかも。",
     sortOrder: 2,
   },
   {
     code: "express",
     label: "表現する力",
-    description: "自分の考えをわかりやすく人に伝える力。",
+    description: "自分の考えや感じたことを、わかりやすく伝えられるところがありそう。",
     sortOrder: 3,
   },
   {
     code: "support",
     label: "人を支える力",
-    description: "相手の話をじっくり聞いたり、困っている人を助けたりする力。",
+    description: "相手の話を聞きながら、周りを支えることができそう。",
     sortOrder: 4,
   },
   {
     code: "craft",
     label: "こだわる力",
-    description: "細かいところまで丁寧に仕上げる力。",
+    description: "細かいところまで、丁寧にやり切ろうとするところがありそう。",
     sortOrder: 5,
   },
 ] as const;
@@ -380,6 +382,15 @@ async function main() {
     `[seed] 確定マスタ投入完了: interests=${INTERESTS.length} traits=${TRAITS.length} questions=${QUESTIONS.length} question_options=${QUESTION_OPTIONS.length}`,
   );
 
+  // interests・questions を更新したので、キャッシュ（#57）を削除する。
+  // Redisが落ちていてもseed自体は失敗させない（redis.ts の設計方針に合わせる）。
+  try {
+    await redis.del("master:interests", "master:questions");
+    console.log("[seed] マスタキャッシュ削除完了");
+  } catch (err) {
+    console.error("[seed] マスタキャッシュ削除に失敗（Redis未接続の可能性）:", err);
+  }
+
   // ---- 2. 未確定マスタ（空配列なら何もしない） ----
   const jobGroups = readJson<JobGroupData[]>("job-groups.json");
   const academicFields = readJson<AcademicFieldData[]>("academic-fields.json");
@@ -528,4 +539,9 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    try {
+      await redis.quit();
+    } catch (err) {
+      console.error("[seed] Redis切断時にエラー（無視して終了）:", err);
+    }
   });

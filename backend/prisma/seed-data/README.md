@@ -1,14 +1,16 @@
 # seed-data
 
-xlsx（shigoto_mikke_data_prep.xlsx）から投入するマスタデータのうち、
-**まだ確定していないもの**をここに JSON として置く運用にしています。
+職業まわりのマスタデータ（職業グループ・職業・学問領域）を、ここに JSON として置いています。
+`pnpm prisma db seed` が、この JSON を読んで DB に投入します。
+
+**「正」とする元データは、Googleスプレッドシート（shigoto_mikke_data_prep）です。**
+スプレッドシートを直したら、この JSON も同じ内容に直してください（食い違いを防ぐため、
+職業の追加・変更は、スプレッドシートと JSON の両方を同じ PR・同じ時期に更新します）。
 
 DB設計.md §7・§9 の通り、`interests` / `traits` / `questions` / `question_options`
 は確定値なので `prisma/seed.ts` に直接ハードコードしています。
 
-一方で以下の3つは xlsx が確定（§9「未確定事項」参照）してから中身を入れる想定で、
-現在は空配列の雛形だけになっています。中身が空でも `pnpm prisma db seed` はエラーにならず、
-該当テーブルには何も投入されません（他のマスタ・診断周りの動作確認には影響しません）。
+以下の3つは、すべて中身が入っています（件数はチェック用の目安）。
 
 - `job-groups.json` — job_groups（8件想定）
 - `jobs.json` — jobs（39件想定。job_interests / job_traits / job_academic_fields もこのファイルの
@@ -17,7 +19,7 @@ DB設計.md §7・§9 の通り、`interests` / `traits` / `questions` / `questi
 
 ## フォーマット
 
-xlsx が確定したら、担当者は以下の形式で埋めてください（`prisma/seed.ts` がこの形をそのまま読みます）。
+データを追加・変更するときは、以下の形式で書いてください（`prisma/seed.ts` がこの形をそのまま読みます）。
 
 ```jsonc
 // job-groups.json
