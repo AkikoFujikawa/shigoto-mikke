@@ -253,7 +253,7 @@ sequenceDiagram
       "id": 7,
       "name": "宇宙開発技術者",
       "summary": "ロケットや人工衛星を設計・開発する仕事です。",
-      "interestTags": ["宇宙・星", "調べる・研究"],
+      "interestTags": ["調べる・研究", "宇宙・星"],
       "imageUrl": null,
       "emoji": "🛰"
     }
@@ -261,6 +261,7 @@ sequenceDiagram
 }
 ```
 順序＝おすすめ順（`rank`）。`imageUrl` は `/jobs/job-{id}.webp` 形式（画像がない職業は `null` で、`emoji` で代替）。**スコアは返さない**（順位を「向き不向き」と受け取らせないため）。
+`interestTags` は好きなものの `sort_order` 順。
 
 ### 3.6 職業
 
