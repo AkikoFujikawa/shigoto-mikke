@@ -156,7 +156,7 @@
 | name | varchar(60) | NO | 職業名 |
 | summary | varchar(120) | NO | スワイプ画面用の短い説明（2〜3行）。スプレッドシート「仕事内容（下書き）」 |
 | description | text | NO | 職業詳細の「どんな仕事？」（スプレッドシート「仕事内容（あきこ案）」） |
-| image_url | varchar(255) | YES | 画像のパス（例：`/jobs/job-7.webp`）。AI生成画像をフロントの `public/jobs/` に置く。NULL の場合は `emoji` で代替 |
+| image_url | varchar(255) | YES | 画像のパス（例：`/images/jobs/job-7.webp`）。AI生成画像をフロントの `public/images/jobs/` に置く。NULL の場合は `emoji` で代替 |
 | emoji | varchar(8) | YES | 画像がない場合の代替 |
 | is_published | boolean | NO | 既定 true。false は表示・推薦の対象外 |
 | created_at / updated_at | timestamptz | NO | |
@@ -662,6 +662,6 @@ DB ではないが、データの持ち方をそろえるため記載。TTL 切�
 2. ~~診断の履歴を残すか~~ **過去分は削除せず残す**（決定）
 3. 契約終了・退会後のデータ保持期間（案：90日）
 4. ~~質問2の選択肢A の特性（express か ideate）~~ ~~同数時のタイブレーク順~~ **解決済み**（質問2は表現／人を支える。同点は `traits.sort_order`）
-5. ~~職業画像の持ち方~~ **AI生成画像を `public/jobs/` に静的配置し、`image_url` にパスを保持**（決定）
+5. ~~職業画像の持ち方~~ **AI生成画像を `public/images/jobs/` に静的配置し、`image_url` にパスを保持**（決定）
 6. ~~職業の summary の元データ~~ **解決済み**（summary＝スプレッドシート「仕事内容（下書き）」、description＝「仕事内容（あきこ案）」。#53）
 7. 案内・お知らせ等の追加テーブルの要否（現時点では不要）
