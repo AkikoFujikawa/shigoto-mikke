@@ -339,3 +339,90 @@ describe("GET /v1/diagnoses/latest", () => {
     });
   });
 });
+
+describe("GET /v1/diagnoses/latest/jobs", () => {
+  beforeEach(() => {
+    vi.stubEnv("SESSION_SECRET", TEST_SESSION_SECRET);
+    mocks.findStudent.mockResolvedValue({ id: 101, schoolId: 7 });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.clearAllMocks();
+  });
+
+  it("トークンが無い場合は、401 UNAUTHORIZED を返す", async () => {
+    const res = await request(createApp()).get("/v1/diagnoses/latest/jobs");
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({
+      error: { code: "UNAUTHORIZED", message: "もう一度はじめからお試しください" },
+    });
+  });
+
+  it("診断がまだ無い場合は、404 DIAGNOSIS_NOT_FOUND を返す", async () => {
+    mocks.findLatestDiagnosis.mockResolvedValue(null);
+
+    const res = await request(createApp())
+      .get("/v1/diagnoses/latest/jobs")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({
+      error: { code: "DIAGNOSIS_NOT_FOUND", message: "診断結果が見つかりません" },
+    });
+  });
+
+  it("トークンの生徒の診断だけを、created_at の新しい順（同じなら id の大きい順）で探す", async () => {
+    mocks.findLatestDiagnosis.mockResolvedValue(null);
+
+    await request(createApp())
+      .get("/v1/diagnoses/latest/jobs")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`);
+
+    const args = mocks.findLatestDiagnosis.mock.calls[0][0];
+    expect(args.where).toEqual({ studentId: 101 });
+    expect(args.orderBy).toEqual([{ createdAt: "desc" }, { id: "desc" }]);
+  });
+
+  it("診断がある場合は、200 と職業候補の一覧を返す（スコアは返さない）", async () => {
+    // ここがモックデータ：DBがこの診断を返したことにする
+    mocks.findLatestDiagnosis.mockResolvedValue({
+      jobs: [
+        {
+          job: {
+            id: 7,
+            name: "宇宙開発技術者",
+            summary: "ロケットや人工衛星を設計・開発する仕事です。",
+            imageUrl: null,
+            emoji: "🛰",
+            // わざと sortOrder の大きい方を先にして、並び替えを確かめる
+            interests: [
+              { interest: { label: "宇宙・星", sortOrder: 10 } },
+              { interest: { label: "調べる・研究", sortOrder: 5 } },
+            ],
+          },
+        },
+      ],
+    });
+
+    const res = await request(createApp())
+      .get("/v1/diagnoses/latest/jobs")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`);
+
+    // ここが答え合わせ
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      items: [
+        {
+          id: 7,
+          name: "宇宙開発技術者",
+          summary: "ロケットや人工衛星を設計・開発する仕事です。",
+          interestTags: ["調べる・研究", "宇宙・星"],
+          imageUrl: null,
+          emoji: "🛰",
+        },
+      ],
+    });
+  });
+});
