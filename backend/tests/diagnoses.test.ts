@@ -18,19 +18,10 @@ vi.mock("../src/lib/prisma.js", () => ({
   },
 }));
 
-import jwt from "jsonwebtoken";
 import request from "supertest";
+import { makeStudentToken, TEST_SESSION_SECRET } from "./helpers/studentToken.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app.js";
-
-const SECRET = "test-session-secret";
-
-function makeStudentToken(studentId: number, schoolId: number): string {
-  return jwt.sign({ schoolId, role: "student" }, SECRET, {
-    algorithm: "HS256",
-    subject: String(studentId),
-  });
-}
 
 // 正しい形の入力。テストごとに一部だけ壊して使う
 const VALID_BODY = {
@@ -75,7 +66,7 @@ const JOBS = [
 
 describe("POST /v1/diagnoses", () => {
   beforeEach(() => {
-    vi.stubEnv("SESSION_SECRET", SECRET);
+    vi.stubEnv("SESSION_SECRET", TEST_SESSION_SECRET);
     mocks.findStudent.mockResolvedValue({ id: 101, schoolId: 7 });
     mocks.findInterests.mockResolvedValue(INTERESTS);
     mocks.findOptions.mockResolvedValue(OPTIONS);
