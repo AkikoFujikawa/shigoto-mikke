@@ -47,7 +47,7 @@ DB設計.md §7・§9 の通り、`interests` / `traits` / `questions` / `questi
     "name": "ゲームプランナー",
     "summary": "ゲームの企画やルールを考える仕事", // 未定なら description の先頭から自動生成
     "description": "仕事内容の全文……",
-    "imageUrl": null, // "/jobs/job-7.webp" 等。未定なら null（emoji 代替）
+    "imageUrl": null, // "/images/jobs/job-7.webp" 等。未定なら null（emoji 代替）
     "emoji": "🎮",
     "interestCodes": ["game", "it"], // interests.code（DB設計.md §6.2 参照）
     "traitCodes": ["ideate"], // traits.code（同上）
