@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   findTraits: vi.fn(),
   findJobs: vi.fn(),
   createDiagnosis: vi.fn(),
+  findLatestDiagnosis: vi.fn(),
 }));
 
 vi.mock("../src/lib/prisma.js", () => ({
@@ -14,7 +15,7 @@ vi.mock("../src/lib/prisma.js", () => ({
     questionOption: { findMany: mocks.findOptions },
     trait: { findMany: mocks.findTraits },
     job: { findMany: mocks.findJobs },
-    diagnosis: { create: mocks.createDiagnosis },
+    diagnosis: { create: mocks.createDiagnosis, findFirst: mocks.findLatestDiagnosis },
   },
 }));
 
@@ -261,5 +262,80 @@ describe("POST /v1/diagnoses", () => {
         whyText: "「こだわる力」があなたの強みとして、この仕事につながっているかもしれません。",
       },
     ]);
+  });
+});
+
+describe("GET /v1/diagnoses/latest", () => {
+  beforeEach(() => {
+    vi.stubEnv("SESSION_SECRET", TEST_SESSION_SECRET);
+    mocks.findStudent.mockResolvedValue({ id: 101, schoolId: 7 });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.clearAllMocks();
+  });
+
+  it("トークンが無い場合は、401 UNAUTHORIZED を返す", async () => {
+    const res = await request(createApp()).get("/v1/diagnoses/latest");
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({
+      error: { code: "UNAUTHORIZED", message: "もう一度はじめからお試しください" },
+    });
+  });
+
+  it("診断がまだ無い場合は、404 DIAGNOSIS_NOT_FOUND を返す", async () => {
+    mocks.findLatestDiagnosis.mockResolvedValue(null);
+
+    const res = await request(createApp())
+      .get("/v1/diagnoses/latest")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({
+      error: { code: "DIAGNOSIS_NOT_FOUND", message: "診断結果が見つかりません" },
+    });
+  });
+
+  it("トークンの生徒の診断だけを、created_at の新しい順（同じなら id の大きい順）で探す", async () => {
+    mocks.findLatestDiagnosis.mockResolvedValue(null);
+
+    await request(createApp())
+      .get("/v1/diagnoses/latest")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`);
+
+    const args = mocks.findLatestDiagnosis.mock.calls[0][0];
+    expect(args.where).toEqual({ studentId: 101 });
+    expect(args.orderBy).toEqual([{ createdAt: "desc" }, { id: "desc" }]);
+  });
+
+  it("診断がある場合は、200 と POST の 201 と同じ形で返す", async () => {
+    mocks.findLatestDiagnosis.mockResolvedValue({
+      id: 3001,
+      createdAt: new Date("2026-10-05T03:21:00Z"),
+      strengths: [
+        { description: "探究の説明", trait: { code: "explore", label: "探究する力" } },
+        { description: "表現の説明", trait: { code: "express", label: "表現する力" } },
+        { description: "こだわるの説明", trait: { code: "craft", label: "こだわる力" } },
+      ],
+      _count: { jobs: 10 },
+    });
+
+    const res = await request(createApp())
+      .get("/v1/diagnoses/latest")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      id: 3001,
+      createdAt: "2026-10-05T03:21:00.000Z",
+      strengths: [
+        { code: "explore", title: "探究する力", description: "探究の説明" },
+        { code: "express", title: "表現する力", description: "表現の説明" },
+        { code: "craft", title: "こだわる力", description: "こだわるの説明" },
+      ],
+      jobCount: 10,
+    });
   });
 });
