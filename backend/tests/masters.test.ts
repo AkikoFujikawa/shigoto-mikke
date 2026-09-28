@@ -19,23 +19,14 @@ vi.mock("../src/lib/redis.js", () => ({
   },
 }));
 
-import jwt from "jsonwebtoken";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app.js";
-
-const SECRET = "test-session-secret";
-
-function makeStudentToken(studentId: number, schoolId: number): string {
-  return jwt.sign({ schoolId, role: "student" }, SECRET, {
-    algorithm: "HS256",
-    subject: String(studentId),
-  });
-}
+import { makeStudentToken, TEST_SESSION_SECRET } from "./helpers/studentToken.js";
 
 describe("GET /v1/masters/interests", () => {
   beforeEach(() => {
-    vi.stubEnv("SESSION_SECRET", SECRET);
+    vi.stubEnv("SESSION_SECRET", TEST_SESSION_SECRET);
   });
 
   afterEach(() => {
@@ -72,7 +63,7 @@ describe("GET /v1/masters/interests", () => {
 
 describe("GET /v1/masters/questions", () => {
   beforeEach(() => {
-    vi.stubEnv("SESSION_SECRET", SECRET);
+    vi.stubEnv("SESSION_SECRET", TEST_SESSION_SECRET);
   });
 
   afterEach(() => {
