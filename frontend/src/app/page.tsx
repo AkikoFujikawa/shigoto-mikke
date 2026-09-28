@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -16,6 +16,14 @@ export default function HomePage() {
   const [schoolCodeError, setSchoolCodeError] = useState("");
   const [nicknameError, setNicknameError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("studentToken");
+
+    if (token) {
+      router.replace("/interests");
+    }
+  }, [router]);
 
   const handleStart = async () => {
     setSchoolCodeError("");

@@ -35,13 +35,21 @@ export default function InterestsPage() {
           },
         });
 
+        if (response.status === 401) {
+          sessionStorage.removeItem("studentToken");
+          window.location.replace("/");
+          return;
+        }
+
         if (!response.ok) {
           setMessage("好きなものを読み込めませんでした");
           return;
         }
 
-        const data: Interest[] = await response.json();
-        setInterests(data);
+        const data = await response.json();
+        console.log("取得データ:", data);
+        console.log("itemsは配列？", Array.isArray(data.items));
+        setInterests(Array.isArray(data.items) ? data.items : []);
       } catch {
         setMessage("通信に失敗しました。もう一度お試しください");
       }
@@ -78,7 +86,14 @@ export default function InterestsPage() {
           <header className="mb-2 flex items-center justify-between">
             <div className="text-xl font-bold text-brand">しごとみっけ🔎</div>
 
-            <button type="button" className="min-h-[44px] px-2 font-semibold text-gray-700">
+            <button
+              type="button"
+              onClick={() => {
+                sessionStorage.removeItem("studentToken");
+                window.location.href = "/";
+              }}
+              className="min-h-[44px] px-2 font-semibold text-gray-700"
+            >
               おわる
             </button>
           </header>
@@ -106,8 +121,8 @@ export default function InterestsPage() {
           </div>
 
           {/* カード */}
-          <div className="grid grid-cols-3 gap-2">
-            {interests.map((interest) => {
+          <div className="grid grid-cols-2 gap-2">
+            {(Array.isArray(interests) ? interests : []).map((interest) => {
               const isSelected = selected.includes(interest.id);
 
               return (
