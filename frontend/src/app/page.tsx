@@ -1,67 +1,148 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Button from "@/components/Button";
+import Card from "@/components/Card";
+import Input from "@/components/Input";
+import PageShell from "@/components/PageShell";
+import Image from "next/image";
 
-type HealthState =
-  { status: "loading" } | { status: "ok"; body: unknown } | { status: "error"; message: string };
+export default function HomePage() {
+  const router = useRouter();
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
-
-/**
- * backend との疎通確認用の暫定ページ（Issue #20）。
- * 生徒画面（UI-S01 等）の実装ではない。
- */
-export default function HealthCheckPage() {
-  const [health, setHealth] = useState<HealthState>({ status: "loading" });
+  const [schoolCode, setSchoolCode] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [schoolCodeError, setSchoolCodeError] = useState("");
+  const [nicknameError, setNicknameError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
+    const token = sessionStorage.getItem("studentToken");
 
-    fetch(`${API_BASE_URL}/v1/health`)
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error(`HTTPステータス: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((body) => {
-        if (!cancelled) setHealth({ status: "ok", body });
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setHealth({
-            status: "error",
-            message: err instanceof Error ? err.message : "不明なエラー",
-          });
-        }
+    if (token) {
+      router.replace("/interests");
+    }
+  }, [router]);
+
+  const handleStart = async () => {
+    setSchoolCodeError("");
+    setNicknameError("");
+
+    if (!schoolCode.trim()) {
+      setSchoolCodeError("学校コードを入力してください");
+    } else if (!/^[a-zA-Z0-9]{1,20}$/.test(schoolCode.trim())) {
+      setSchoolCodeError("学校コードは20文字以内の英数字で入力してください");
+    }
+
+    if (!nickname.trim()) {
+      setNicknameError("ニックネームを入力してください");
+    } else if (nickname.trim().length > 20) {
+      setNicknameError("20文字以内で入力してください");
+    }
+    if (
+      !schoolCode.trim() ||
+      !/^[a-zA-Z0-9]{1,20}$/.test(schoolCode.trim()) ||
+      !nickname.trim() ||
+      nickname.trim().length > 20
+    ) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+
+      const response = await fetch(`${apiBaseUrl}/v1/students/session`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          schoolCode: schoolCode.trim(),
+          nickname: nickname.trim(),
+        }),
       });
+      const data = await response.json();
 
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      if (!response.ok) {
+        setSchoolCodeError(data.error?.message ?? "エラーが発生しました");
+        setIsLoading(false);
+        return;
+      }
+      sessionStorage.setItem("studentToken", data.token);
+      router.push("/interests");
+    } catch {
+      setSchoolCodeError("通信に失敗しました。もう一度お試しください");
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-8">
-      <h1 className="text-2xl font-bold text-brand">しごとみっけ（仮）</h1>
-      <p className="text-sm text-gray-500">
-        backend（{API_BASE_URL}）との疎通確認ページです。生徒画面はこれから実装します。
-      </p>
+    <PageShell>
+      <div
+        className="min-h-screen bg-bottom bg-no-repeat bg-cover "
+        style={{ backgroundImage: "url('/backgrounds/S01.png')" }}
+      >
+        <div className="flex flex-col gap-md">
+          {/* ロゴ・キャッチコピー */}
+          <div className="pt-lg text-center">
+            <h1 className="text-3xl font-bold text-brand"> しごとみっけ🔎 </h1>
+            <p className="mt-sm text-sm text-gray-600">好きから見つかる、まだ知らない未来。</p>
+          </div>
 
-      <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-2 text-sm font-semibold text-gray-500">GET /v1/health</h2>
-        {health.status === "loading" && <p>確認中…</p>}
-        {health.status === "ok" && (
-          <pre className="rounded-lg bg-green-50 p-3 text-sm text-green-800">
-            {JSON.stringify(health.body, null, 2)}
-          </pre>
-        )}
-        {health.status === "error" && (
-          <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800">
-            接続できませんでした：{health.message}
-          </p>
-        )}
+          <div className="relative z-0 mb-16 flex justify-center translate-y-20">
+            <Image
+              src="/characters/tanecchi/peek_S01.png"
+              alt="たねっち"
+              width={144}
+              height={144}
+              className="w-36 h-auto"
+            />
+          </div>
+
+          {/* 入力カード */}
+          <div className="relative z-10 mx-auto w-[88%]">
+            <Card>
+              <div className="flex flex-col gap-lg pt-4">
+                <h2 className="text-center text-xl font-bold text-navy">はじめよう</h2>
+
+                <div>
+                  <Input
+                    label="学校コード"
+                    placeholder="例：ABC123"
+                    value={schoolCode}
+                    onChange={(event) => setSchoolCode(event.target.value)}
+                  />
+                  <p className="mt-xs text-sm text-gray-500">
+                    学校から案内されたコードを入力してね。
+                  </p>
+                  {schoolCodeError && (
+                    <p className="mt-xs text-sm text-red-600">{schoolCodeError}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Input
+                    label="ニックネーム"
+                    placeholder="例：みさき"
+                    value={nickname}
+                    onChange={(event) => setNickname(event.target.value)}
+                  />
+                  <p className="mt-xs text-sm text-gray-500">
+                    本名じゃなくてOK。ほかの人には見えません。
+                  </p>
+                  {nicknameError && <p className="mt-xs text-sm text-red-600">{nicknameError}</p>}
+                </div>
+
+                <Button onClick={handleStart} disabled={isLoading}>
+                  {isLoading ? "はじめています…" : "はじめる"}
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
       </div>
-    </main>
+    </PageShell>
   );
 }
