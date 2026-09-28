@@ -8,6 +8,7 @@ import { handleUnexpectedError } from "./middlewares/errorHandler.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { studentsRouter } from "./routes/students.routes.js";
 import { mastersRouter } from "./routes/masters.routes.js";
+import { diagnosesRouter } from "./routes/diagnoses.routes.js";
 
 export function createApp(): Express {
   const app = express();
@@ -21,6 +22,7 @@ export function createApp(): Express {
   app.use("/v1", healthRouter);
   app.use("/v1", studentsRouter);
   app.use("/v1", mastersRouter);
+  app.use("/v1", diagnosesRouter);
 
   app.use(handleUnexpectedError);
 
