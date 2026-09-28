@@ -499,6 +499,21 @@ async function main() {
       (jobs.length === 0 ? "（xlsx未確定のため現在は空。別Issueで投入予定）" : ""),
   );
 
+  // 職業・分野・学問を更新したので、職業詳細のキャッシュ（#60、master:job:{id}）を削除する。
+  // 非公開にした職業のキーも残さないよう、jobs.json のIDではなくキーのパターンで探す。
+  try {
+    let cursor = "0";
+    let deleted = 0;
+    do {
+      const [next, keys] = await redis.scan(cursor, "MATCH", "master:job:*", "COUNT", 100);
+      cursor = next;
+      if (keys.length > 0) deleted += await redis.del(...keys);
+    } while (cursor !== "0");
+    console.log(`[seed] 職業詳細キャッシュ削除完了: ${deleted}件`);
+  } catch (err) {
+    console.error("[seed] 職業詳細キャッシュ削除に失敗（Redis未接続の可能性）:", err);
+  }
+
   // ---- 3. デモ用の学校・学校管理者・契約 ----
   // 管理者の自己登録は廃止（#11で決定）。UI-A03の4状態（無料体験中／無料体験終了／
   // 契約中／契約期限切れ）を確認・デモできるよう、状態違いの学校を4件用意する。
