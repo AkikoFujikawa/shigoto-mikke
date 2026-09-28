@@ -165,6 +165,37 @@ describe("POST /v1/diagnoses", () => {
     expect(res.body.error.details[0].field).toBe("answers");
   });
 
+  it("questionId に数字と文字列の同じIDが含まれる場合は、400 VALIDATION_ERROR を返し、保存しない", async () => {
+    const res = await request(createApp())
+      .post("/v1/diagnoses")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`)
+      .send({
+        ...VALID_BODY,
+        answers: [
+          { questionId: 1, optionId: 11 },
+          { questionId: 2, optionId: 21 },
+          { questionId: 3, optionId: 32 },
+          { questionId: 4, optionId: 41 },
+          { questionId: "1", optionId: 11 },
+        ],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.details[0].field).toBe("answers");
+    expect(mocks.createDiagnosis).not.toHaveBeenCalled();
+  });
+
+  it("interestIds に数字と文字列の同じIDが含まれる場合は、400 VALIDATION_ERROR を返し、保存しない", async () => {
+    const res = await request(createApp())
+      .post("/v1/diagnoses")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`)
+      .send({ ...VALID_BODY, interestIds: [1, "1"] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.details[0].field).toBe("interestIds");
+    expect(mocks.createDiagnosis).not.toHaveBeenCalled();
+  });
+
   it("存在しない interestId を含む場合は、400 VALIDATION_ERROR を返し、保存しない", async () => {
     // DBには id=1 しか無かった、という状況を作る
     mocks.findInterests.mockResolvedValue([INTERESTS[0]]);

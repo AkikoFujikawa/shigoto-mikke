@@ -8,7 +8,10 @@ import { handleValidationErrors } from "../middlewares/validate.js";
 // DBを見るチェック（存在するID・その質問の選択肢か）はコントローラーで行う
 export const diagnosesRouter = Router();
 
-const hasNoDuplicates = (values: unknown[]) => new Set(values).size === values.length;
+// 数字の 1 と文字列の "1" を同じものとして比べるため、数値にそろえてから重複を確かめる
+// （toInt() はこのチェックの後に行われるため）
+const hasNoDuplicates = (values: unknown[]) =>
+  new Set(values.map((value) => Number(value))).size === values.length;
 
 diagnosesRouter.post(
   "/diagnoses",
