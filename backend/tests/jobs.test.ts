@@ -156,6 +156,8 @@ describe("GET /v1/jobs/:jobId", () => {
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       }),
     );
+    // 別の職業の保存済みの文を返さないよう、この職業の分だけを読んでいること
+    expect(mocks.findDiagnosis.mock.calls[0][0].select.jobs.where).toEqual({ jobId: 7 });
   });
 
   it("候補に入っていない職業は、最新の診断の好きなもの・強みから、その場で文を作る", async () => {
