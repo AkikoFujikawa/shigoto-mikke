@@ -155,3 +155,113 @@ export async function createDiagnosis(
     next(err);
   }
 }
+
+const DIAGNOSIS_NOT_FOUND = {
+  error: { code: "DIAGNOSIS_NOT_FOUND", message: "診断結果が見つかりません" },
+};
+
+// 最新の診断＝その生徒の created_at が最新の1件（同時刻なら id の大きい方）。他の生徒の診断は見ない
+const latestOrder = [{ createdAt: "desc" as const }, { id: "desc" as const }];
+
+// API設計 §3.5 GET /v1/diagnoses/latest。POST の 201 と同じ形で返す
+export async function getLatestDiagnosis(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const student = req.student;
+    if (!student) {
+      next(new Error("requireStudent を通っていません"));
+      return;
+    }
+
+    const diagnosis = await prisma.diagnosis.findFirst({
+      where: { studentId: student.id },
+      orderBy: latestOrder,
+      select: {
+        id: true,
+        createdAt: true,
+        strengths: {
+          orderBy: { rank: "asc" },
+          select: { description: true, trait: { select: { code: true, label: true } } },
+        },
+        _count: { select: { jobs: true } },
+      },
+    });
+    if (!diagnosis) {
+      res.status(404).json(DIAGNOSIS_NOT_FOUND);
+      return;
+    }
+
+    res.json({
+      id: diagnosis.id,
+      createdAt: diagnosis.createdAt,
+      strengths: diagnosis.strengths.map((strength) => ({
+        code: strength.trait.code,
+        title: strength.trait.label,
+        description: strength.description,
+      })),
+      jobCount: diagnosis._count.jobs,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// API設計 §3.5 GET /v1/diagnoses/latest/jobs。おすすめ順（rank）で返し、スコアは返さない
+export async function getLatestDiagnosisJobs(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const student = req.student;
+    if (!student) {
+      next(new Error("requireStudent を通っていません"));
+      return;
+    }
+
+    const diagnosis = await prisma.diagnosis.findFirst({
+      where: { studentId: student.id },
+      orderBy: latestOrder,
+      select: {
+        jobs: {
+          orderBy: { rank: "asc" },
+          select: {
+            job: {
+              select: {
+                id: true,
+                name: true,
+                summary: true,
+                imageUrl: true,
+                emoji: true,
+                interests: { select: { interest: { select: { label: true, sortOrder: true } } } },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!diagnosis) {
+      res.status(404).json(DIAGNOSIS_NOT_FOUND);
+      return;
+    }
+
+    res.json({
+      items: diagnosis.jobs.map(({ job }) => ({
+        id: job.id,
+        name: job.name,
+        summary: job.summary,
+        interestTags: job.interests
+          .map(({ interest }) => interest)
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .map((interest) => interest.label),
+        imageUrl: job.imageUrl,
+        emoji: job.emoji,
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+}

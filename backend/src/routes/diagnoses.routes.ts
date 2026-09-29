@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { body } from "express-validator";
-import { createDiagnosis } from "../controllers/diagnoses.controller.js";
+import {
+  createDiagnosis,
+  getLatestDiagnosis,
+  getLatestDiagnosisJobs,
+} from "../controllers/diagnoses.controller.js";
 import { requireStudent } from "../middlewares/requireStudent.js";
 import { handleValidationErrors } from "../middlewares/validate.js";
 
@@ -36,3 +40,7 @@ diagnosesRouter.post(
   handleValidationErrors,
   createDiagnosis,
 );
+
+// 入力（body・params・query）が無いため、express-validator のルールは不要（masters.routes.ts と同じ）
+diagnosesRouter.get("/diagnoses/latest", requireStudent, getLatestDiagnosis);
+diagnosesRouter.get("/diagnoses/latest/jobs", requireStudent, getLatestDiagnosisJobs);

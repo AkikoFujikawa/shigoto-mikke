@@ -253,14 +253,16 @@ sequenceDiagram
       "id": 7,
       "name": "宇宙開発技術者",
       "summary": "ロケットや人工衛星を設計・開発する仕事です。",
-      "interestTags": ["宇宙・星", "調べる・研究"],
+      "interestTags": ["調べる・研究", "宇宙・星"],
       "imageUrl": null,
       "emoji": "🛰"
     }
   ]
 }
 ```
+
 順序＝おすすめ順（`rank`）。`imageUrl` は `/images/jobs/job-{id}.webp` 形式（画像がない職業は `null` で、`emoji` で代替）。**スコアは返さない**（順位を「向き不向き」と受け取らせないため）。
+`interestTags` は好きなものの `sort_order` 順。
 
 ### 3.6 職業
 
@@ -285,6 +287,7 @@ sequenceDiagram
 }
 ```
 
+- `interestTags` は好きなものの `sort_order` 順。
 - `whyConnected`：**最新の診断に紐づく保存済み文章**（AI を使わず、タグの一致からテンプレートで組み立てる。`POST /v1/diagnoses` 時に、候補10件ぶんまとめて計算・保存する。#30で決定）。職業詳細の表示でも計算し直さない。最新の診断の候補に含まれない職業の場合も、同じルールでその場で計算する（保存はしない）。
   - **テンプレート**：診断で選んだ好きなものタグ（`interests.sort_order` の若い順）と、強み上位3つの特性タグ（`traits.sort_order` の若い順）のうち、その職業のタグと一致する最初の1つずつを使う。
     - 両方一致：「あなたが選んだ『{interest}』への興味と、『{trait}』がこの仕事につながっているかもしれません。」
