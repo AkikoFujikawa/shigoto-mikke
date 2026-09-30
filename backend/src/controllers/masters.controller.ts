@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { prisma } from "../lib/prisma.js";
-import { redis } from "../lib/redis.js";
+import { getCached, setCached } from "../lib/cache.js";
 
 const CACHE_TTL_SECONDS = 60 * 60;
 const INTERESTS_CACHE_KEY = "master:interests";
@@ -19,30 +19,12 @@ export async function getInterests(req: Request, res: Response, next: NextFuncti
       orderBy: { sortOrder: "asc" },
     });
 
-    await setCached(INTERESTS_CACHE_KEY, interests);
+    await setCached(INTERESTS_CACHE_KEY, interests, CACHE_TTL_SECONDS);
 
     res.set("Cache-Control", `max-age=${CACHE_TTL_SECONDS}`);
     res.status(200).json({ items: interests });
   } catch (err) {
     next(err);
-  }
-}
-
-async function getCached(key: string): Promise<unknown | null> {
-  try {
-    const value = await redis.get(key);
-    return value ? JSON.parse(value) : null;
-  } catch (err) {
-    console.error(`[redis] get failed for ${key}:`, err);
-    return null;
-  }
-}
-
-async function setCached(key: string, value: unknown): Promise<void> {
-  try {
-    await redis.set(key, JSON.stringify(value), "EX", CACHE_TTL_SECONDS);
-  } catch (err) {
-    console.error(`[redis] set failed for ${key}:`, err);
   }
 }
 
@@ -69,7 +51,7 @@ export async function getQuestions(req: Request, res: Response, next: NextFuncti
       orderBy: { sortOrder: "asc" },
     });
 
-    await setCached(QUESTIONS_CACHE_KEY, questions);
+    await setCached(QUESTIONS_CACHE_KEY, questions, CACHE_TTL_SECONDS);
 
     res.set("Cache-Control", `max-age=${CACHE_TTL_SECONDS}`);
     res.status(200).json({ items: questions });

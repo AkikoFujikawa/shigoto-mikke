@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { matchedData } from "express-validator";
 import { prisma } from "../lib/prisma.js";
-import { redis } from "../lib/redis.js";
+import { getCached, setCached } from "../lib/cache.js";
 import { buildWhyConnected } from "../lib/whyConnected.js";
 
 const CACHE_TTL_SECONDS = 60 * 60;
@@ -26,24 +26,6 @@ type JobDetailBase = {
   interestIds: number[];
   traitIds: number[];
 };
-
-async function getCachedJob(key: string): Promise<JobDetailBase | null> {
-  try {
-    const value = await redis.get(key);
-    return value ? (JSON.parse(value) as JobDetailBase) : null;
-  } catch (err) {
-    console.error(`[redis] get failed for ${key}:`, err);
-    return null;
-  }
-}
-
-async function setCachedJob(key: string, value: JobDetailBase): Promise<void> {
-  try {
-    await redis.set(key, JSON.stringify(value), "EX", CACHE_TTL_SECONDS);
-  } catch (err) {
-    console.error(`[redis] set failed for ${key}:`, err);
-  }
-}
 
 /** 公開中の職業だけを読む（DB設計 jobs.is_published：false は表示の対象外） */
 async function loadJobBase(jobId: number): Promise<JobDetailBase | null> {
@@ -122,7 +104,7 @@ export async function getJob(req: Request, res: Response, next: NextFunction): P
     const { jobId } = matchedData(req) as { jobId: number };
 
     const key = jobCacheKey(jobId);
-    let job = await getCachedJob(key);
+    let job = await getCached<JobDetailBase>(key);
     if (!job) {
       job = await loadJobBase(jobId);
       if (!job) {
@@ -131,7 +113,7 @@ export async function getJob(req: Request, res: Response, next: NextFunction): P
         });
         return;
       }
-      await setCachedJob(key, job);
+      await setCached(key, job, CACHE_TTL_SECONDS);
     }
 
     const whyConnected = await findWhyConnected(student.id, job);
