@@ -38,12 +38,6 @@ const growthMessages = [
   },
 ];
 
-const strengthEmojis: Record<string, string> = {
-  explore: "🔎",
-  ideate: "💡",
-  support: "🤝",
-};
-
 export default function QuestionsPage() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -51,13 +45,9 @@ export default function QuestionsPage() {
   const [error, setError] = useState("");
   const [answers, setAnswers] = useState<Record<number, number>>({});
 
-  const [showResult, setShowResult] = useState(false);
   const [interestIds, setInterestIds] = useState<number[]>([]);
   const [diagnosisLoading, setDiagnosisLoading] = useState(false);
   const [diagnosisError, setDiagnosisError] = useState("");
-  const [strengths, setStrengths] = useState<
-    { code: string; title: string; description: string }[]
-  >([]);
 
   useEffect(() => {
     const saved = sessionStorage.getItem("selectedInterestIds");
@@ -154,77 +144,7 @@ export default function QuestionsPage() {
       </main>
     );
   }
-  if (showResult) {
-    return (
-      <main
-        className="min-h-screen bg-cover bg-center bg-no-repeat px-5 py-6"
-        style={{ backgroundImage: "url('/backgrounds/S01.png')" }}
-      >
-        <header className="mb-8 flex items-center justify-between">
-          <div className="text-xl font-bold text-brand">しごとみっけ🔎</div>
-          <button
-            type="button"
-            onClick={() => {
-              sessionStorage.removeItem("studentToken");
-              window.location.href = "/";
-            }}
-            className="min-h-[44px] px-2 font-semibold text-gray-700"
-          >
-            おわる
-          </button>
-        </header>
-        <h1 className="text-center text-2xl font-bold text-navy">🌱 自分らしさの結果</h1>
-        <div className="relative mx-auto mt-6 flex max-w-[320px] items-end justify-center gap-2">
-          <Image
-            src="/characters/tanecchi/S05.png"
-            alt="たねっち"
-            className="w-32 h-auto shrink-0 -translate-y-4"
-            width={128}
-            height={128}
-          />
 
-          <p className="relative mx-auto -mt-2 w-[200px] shrink-0 rounded-2xl border-2 border-brand bg-white px-4 py-4 text-center text-sm leading-7 text-navy">
-            好きなことや回答から、あなたの「強みのタネ」を見つけました！
-            <span className="absolute left-[-9px] top-2/3 h-4 w-4 -translate-y-1/2 rotate-45 border-b-2 border-l-2 border-brand bg-white" />
-          </p>
-        </div>
-        <div className="mt-6 space-y-4">
-          {strengths.map((strength) => (
-            <div
-              key={strength.code}
-              className="rounded-2xl border border-gray-200 bg-white p-5 shadow-card"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">{strengthEmojis[strength.code] ?? "🌱"}</span>
-
-                <h2 className="text-lg font-bold text-navy">{strength.title}</h2>
-              </div>
-
-              <p className="mt-3 text-base leading-7 text-navy">{strength.description}</p>
-            </div>
-          ))}
-        </div>
-        <button
-          type="button"
-          className="mt-6 min-h-[44px] w-full rounded-lg bg-brand px-6 py-3 font-bold text-white hover:opacity-90"
-          onClick={() => {
-            window.location.href = "/jobs";
-          }}
-        >
-          仕事を見てみる 🚀
-        </button>
-        <button
-          type="button"
-          className="mt-3 min-h-[44px] w-full px-6 py-3 text-base font-semibold text-navy underline"
-          onClick={() => {
-            window.location.href = "/interests";
-          }}
-        >
-          もう一度やり直す
-        </button>
-      </main>
-    );
-  }
   const diagnosisAnswers = questions.map((question) => ({
     questionId: question.id,
     optionId: answers[question.id],
@@ -269,7 +189,10 @@ export default function QuestionsPage() {
       } finally {
         clearTimeout(timeoutId);
       }
-
+      if (response.status === 401) {
+        window.location.href = "/";
+        return;
+      }
       if (!response.ok) {
         throw new Error("診断APIへの送信に失敗しました");
       }
@@ -282,17 +205,17 @@ export default function QuestionsPage() {
         }[];
       } = await response.json();
 
-      setStrengths(data.strengths);
-      setShowResult(true);
+      sessionStorage.setItem("strengths", JSON.stringify(data.strengths));
     } catch {
       setDiagnosisError("診断に失敗しました。もう一度お試しください。");
     } finally {
       const elapsed = Date.now() - loadingStartTime;
-      const remaining = Math.max(0, 2000 - elapsed);
+      const remaining = Math.max(0, 10000 - elapsed);
 
       await new Promise((resolve) => setTimeout(resolve, remaining));
 
       setDiagnosisLoading(false);
+      window.location.href = "/strengths";
     }
   };
   const question = questions[currentQuestion];
