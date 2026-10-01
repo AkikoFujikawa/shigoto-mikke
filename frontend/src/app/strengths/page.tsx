@@ -11,7 +11,7 @@ type Strength = {
 const strengthEmojis: Record<string, string> = {
   explore: "🔎",
   ideate: "💡",
-  express: "🎨",
+  express: "🗣",
   support: "🤝",
   craft: "✂️",
 };

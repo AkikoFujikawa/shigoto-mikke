@@ -156,6 +156,7 @@ export default function QuestionsPage() {
     setDiagnosisError("");
 
     const loadingStartTime = Date.now();
+    let succeeded = false;
 
     try {
       const token = sessionStorage.getItem("studentToken");
@@ -206,16 +207,17 @@ export default function QuestionsPage() {
       } = await response.json();
 
       sessionStorage.setItem("strengths", JSON.stringify(data.strengths));
+      succeeded = true;
     } catch {
       setDiagnosisError("診断に失敗しました。もう一度お試しください。");
     } finally {
       const elapsed = Date.now() - loadingStartTime;
-      const remaining = Math.max(0, 10000 - elapsed);
+      const remaining = Math.max(0, 5000 - elapsed);
 
       await new Promise((resolve) => setTimeout(resolve, remaining));
 
       setDiagnosisLoading(false);
-      window.location.href = "/strengths";
+      if (succeeded) window.location.href = "/strengths";
     }
   };
   const question = questions[currentQuestion];
