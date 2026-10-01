@@ -78,7 +78,7 @@ export default function InterestsPage() {
         className="relative -mx-md min-h-screen bg-cover bg-center bg-no-repeat px-md pb-28"
         style={{ backgroundImage: "url('/backgrounds/S01.png')" }}
       >
-        <div className="absolute inset-0 z-0 bg-white/50" />
+        <div className="absolute inset-0 z-0 bg-white/20" />
         <div className="relative z-10">
           {/* ヘッダー */}
           <header className="mb-2 flex items-center justify-between">
@@ -155,7 +155,15 @@ export default function InterestsPage() {
 
           {/* 次へ */}
           <div className="mt-5">
-            <Button disabled={selected.length === 0}>次へ →</Button>
+            <Button
+              disabled={selected.length === 0}
+              onClick={() => {
+                sessionStorage.setItem("selectedInterestIds", JSON.stringify(selected));
+                window.location.href = "/questions";
+              }}
+            >
+              次へ →
+            </Button>
           </div>
         </div>
       </div>
