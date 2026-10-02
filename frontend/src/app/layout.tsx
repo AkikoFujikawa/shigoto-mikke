@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "しごとみっけ（仮）",
+  title: "しごとみっけ",
   description: "好きから見つかる、まだ知らない未来。",
 };
 
