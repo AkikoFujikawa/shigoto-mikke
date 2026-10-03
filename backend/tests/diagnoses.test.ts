@@ -305,6 +305,39 @@ describe("POST /v1/diagnoses", () => {
       "AIが考えたこだわるの説明がありそう。",
     ]);
   });
+
+  it("AI には、強みの code・特性名・説明だけを渡す（id や sortOrder は渡さない）", async () => {
+    const res = await request(createApp())
+      .post("/v1/diagnoses")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`)
+      .send(VALID_BODY);
+
+    expect(res.status).toBe(201);
+    expect(mocks.generateStrengths).toHaveBeenCalledWith([
+      { code: "explore", label: "探究する力", description: "探究の説明" },
+      { code: "express", label: "表現する力", description: "表現の説明" },
+      { code: "craft", label: "こだわる力", description: "こだわるの説明" },
+    ]);
+  });
+
+  it("入力エラー（他の質問の選択肢）の場合は、AI を呼ばない", async () => {
+    const res = await request(createApp())
+      .post("/v1/diagnoses")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`)
+      .send({
+        ...VALID_BODY,
+        answers: [
+          { questionId: 1, optionId: 21 },
+          { questionId: 2, optionId: 21 },
+          { questionId: 3, optionId: 32 },
+          { questionId: 4, optionId: 41 },
+          { questionId: 5, optionId: 51 },
+        ],
+      });
+
+    expect(res.status).toBe(400);
+    expect(mocks.generateStrengths).not.toHaveBeenCalled();
+  });
 });
 
 describe("GET /v1/diagnoses/latest", () => {
