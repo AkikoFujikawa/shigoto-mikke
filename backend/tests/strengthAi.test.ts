@@ -105,6 +105,7 @@ describe("validateStrengthDescriptions", () => {
     "この仕事に向いているかも。",
     "必ず活かせる力がありそう。",
     "詳しくは https://example.com を見てね。",
+    "もっと学ぶべきかもしれません。",
   ])("禁止表現（%s）を含む場合は、null を返す", (description) => {
     const result = validateStrengthDescriptions(
       {
@@ -119,6 +120,24 @@ describe("validateStrengthDescriptions", () => {
 
     expect(result).toBeNull();
   });
+
+  it.each(["最後まで調べきる力がありそう。", "食べきれないほどの好奇心がありそう。"])(
+    "「べき」を含む普通の言葉（%s）は、OK として返す",
+    (description) => {
+      const result = validateStrengthDescriptions(
+        {
+          strengths: [
+            VALID_OUTPUT.strengths[0],
+            VALID_OUTPUT.strengths[1],
+            { code: "craft", description },
+          ],
+        },
+        EXPECTED_CODES,
+      );
+
+      expect(result?.get("craft")).toBe(description);
+    },
+  );
 
   it("出力の形がそもそも違う（文字列）場合は、null を返す", () => {
     const result = validateStrengthDescriptions("こんにちは", EXPECTED_CODES);

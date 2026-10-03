@@ -15,7 +15,7 @@ export const DESCRIPTION_MAX_LENGTH = 200;
 export const FORBIDDEN_PATTERNS: RegExp[] = [
   /向いている/,
   /向いています/,
-  /べき/,
+  /べき(?![るれっらろ])/, // 「〜すべき」は禁止。「調べきる」「食べきれない」などは除く
   /理系/,
   /文系/,
   /必ず/,
