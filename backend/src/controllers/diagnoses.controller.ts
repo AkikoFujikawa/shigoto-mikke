@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import { matchedData } from "express-validator";
 import { rankJobCandidates, selectStrengths } from "../lib/matching.js";
 import { prisma } from "../lib/prisma.js";
+import { generateStrengthDescriptions } from "../lib/strengthAi.js";
 import { buildWhyConnected } from "../lib/whyConnected.js";
 
 type Answer = { questionId: number; optionId: number };
@@ -29,7 +30,7 @@ function makeInputHash({ interestIds, answers }: DiagnosisInput): string {
   return createHash("sha256").update(JSON.stringify(normalized)).digest("hex");
 }
 
-// API設計 §3.5。AIは未接続のため、強みの説明は traits.description の固定文（#59。AI接続は #65）
+// API設計 §3.5。強みの説明は AI で生成し、失敗・タイムアウト・不正な出力なら traits.description の固定文にする（#65・案A）
 export async function createDiagnosis(
   req: Request,
   res: Response,
@@ -82,6 +83,18 @@ export async function createDiagnosis(
       return trait ? [trait] : [];
     });
 
+    // ---- 強みの説明を AI で作る（#65）。失敗・タイムアウト・不正な出力なら固定文にする（案A） ----
+    const ai = await generateStrengthDescriptions(
+      strengthTraits.map(({ code, label, description }) => ({ code, label, description })),
+    );
+    const descriptionOf = (trait: { code: string; description: string }) =>
+      ai?.descriptions.get(trait.code) ?? trait.description;
+    if (ai) {
+      req.log?.info({ aiModel: ai.model }, "AI で強みの説明を生成しました");
+    } else {
+      req.log?.warn("AI が使えなかったため、強みの説明を固定文にフォールバックしました");
+    }
+
     const publishedJobs = await prisma.job.findMany({
       where: { isPublished: true },
       select: {
@@ -108,8 +121,8 @@ export async function createDiagnosis(
       data: {
         studentId: student.id,
         inputHash: makeInputHash({ interestIds, answers }),
-        aiModel: null,
-        usedFallback: true,
+        aiModel: ai?.model ?? null,
+        usedFallback: ai === null,
         interests: { create: interestIds.map((interestId) => ({ interestId })) },
         answers: {
           create: answers.map((a) => ({ questionId: a.questionId, optionId: a.optionId })),
@@ -118,7 +131,7 @@ export async function createDiagnosis(
           create: strengthTraits.map((trait, index) => ({
             rank: index + 1,
             traitId: trait.id,
-            description: trait.description,
+            description: descriptionOf(trait),
           })),
         },
         jobs: {
@@ -147,7 +160,7 @@ export async function createDiagnosis(
       strengths: strengthTraits.map((trait) => ({
         code: trait.code,
         title: trait.label,
-        description: trait.description,
+        description: descriptionOf(trait),
       })),
       jobCount: candidates.length,
     });
