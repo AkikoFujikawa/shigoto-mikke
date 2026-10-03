@@ -126,6 +126,7 @@ export const requestOpenRouter: AiRequester = async (strengths) => {
   const completion = await client.chat.completions.create({
     model: AI_MODEL,
     messages: buildMessages(strengths),
+    reasoning_effort: "low", // 短い説明文なので深く考えさせず、タイムアウトしにくくする
     response_format: {
       type: "json_schema",
       json_schema: {
