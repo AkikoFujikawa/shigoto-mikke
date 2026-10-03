@@ -207,6 +207,7 @@ export default function QuestionsPage() {
       } = await response.json();
 
       sessionStorage.setItem("strengths", JSON.stringify(data.strengths));
+      sessionStorage.removeItem("jobsPosition"); // 新しい診断では1件目から表示する
       succeeded = true;
     } catch {
       setDiagnosisError("診断に失敗しました。もう一度お試しください。");
