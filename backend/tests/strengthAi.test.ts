@@ -1,5 +1,12 @@
-import { describe, expect, it } from "vitest";
-import { DESCRIPTION_MAX_LENGTH, validateStrengthDescriptions } from "../src/lib/strengthAi.js";
+import { describe, expect, it, vi } from "vitest";
+import {
+  AI_MODEL,
+  DESCRIPTION_MAX_LENGTH,
+  buildMessages,
+  generateStrengthDescriptions,
+  validateStrengthDescriptions,
+  type StrengthForAi,
+} from "../src/lib/strengthAi.js";
 
 // 今回の診断で決まった強み3つ（sort_order 順）
 const EXPECTED_CODES = ["explore", "express", "craft"];
@@ -117,5 +124,82 @@ describe("validateStrengthDescriptions", () => {
     const result = validateStrengthDescriptions("こんにちは", EXPECTED_CODES);
 
     expect(result).toBeNull();
+  });
+});
+
+// 今回の診断で決まった強み3つ（AI に渡すもの）
+const STRENGTHS: StrengthForAi[] = [
+  { code: "explore", label: "探究する力", description: "探究の説明" },
+  { code: "express", label: "表現する力", description: "表現の説明" },
+  { code: "craft", label: "こだわる力", description: "こだわるの説明" },
+];
+
+describe("generateStrengthDescriptions", () => {
+  it("AI が正しい出力を返した場合は、説明文とモデル名を返す", async () => {
+    // 偽物の AI：いつも正しい JSON を返す
+    const request = vi.fn().mockResolvedValue(JSON.stringify(VALID_OUTPUT));
+
+    const result = await generateStrengthDescriptions(STRENGTHS, request);
+
+    expect(result?.model).toBe(AI_MODEL);
+    expect(result?.descriptions.get("explore")).toBe(
+      "気になったことを、深く調べられるところがありそう。",
+    );
+    expect(request).toHaveBeenCalledWith(STRENGTHS);
+  });
+
+  it("AI がエラー・タイムアウトを起こした場合は、null を返す", async () => {
+    // 偽物の AI：エラー（タイムアウト）を投げる
+    const request = vi.fn().mockRejectedValue(new Error("timeout"));
+
+    const result = await generateStrengthDescriptions(STRENGTHS, request);
+
+    expect(result).toBeNull();
+  });
+
+  it("AI の返事が JSON ではない場合は、null を返す", async () => {
+    // 偽物の AI：JSON ではない文章を返す
+    const request = vi.fn().mockResolvedValue("すみません、うまく答えられませんでした。");
+    const result = await generateStrengthDescriptions(STRENGTHS, request);
+
+    expect(result).toBeNull();
+  });
+
+  it("AI の返事に断定表現が入っていた場合は、null を返す", async () => {
+    // 偽物の AI：形は正しいが、断定表現の入った JSON を返す
+    const request = vi.fn().mockResolvedValue(
+      JSON.stringify({
+        strengths: [
+          VALID_OUTPUT.strengths[0],
+          VALID_OUTPUT.strengths[1],
+          { code: "craft", description: "理系に向いているかもしれません。" },
+        ],
+      }),
+    );
+
+    const result = await generateStrengthDescriptions(STRENGTHS, request);
+
+    expect(result).toBeNull();
+  });
+
+  it("AI の返事が空（null）の場合は、null を返す", async () => {
+    // 偽物の AI：中身が空の返事を返す
+    const request = vi.fn().mockResolvedValue(null);
+    const result = await generateStrengthDescriptions(STRENGTHS, request);
+
+    expect(result).toBeNull();
+  });
+});
+
+describe("buildMessages", () => {
+  it("AI には、強みの code・特性名・説明だけを送る（ニックネームなどは送らない）", () => {
+    // うっかりニックネームが混ざったデータを渡す
+    const strengthsWithNickname = STRENGTHS.map((s) => ({ ...s, nickname: "みさき" }));
+
+    const messages = buildMessages(strengthsWithNickname);
+    const sent = JSON.parse(messages[1].content);
+
+    expect(sent).toEqual({ strengths: STRENGTHS });
+    expect(messages[1].content).not.toContain("みさき");
   });
 });
