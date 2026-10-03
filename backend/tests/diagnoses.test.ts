@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   findJobs: vi.fn(),
   createDiagnosis: vi.fn(),
   findLatestDiagnosis: vi.fn(),
+  generateStrengths: vi.fn(),
 }));
 
 vi.mock("../src/lib/prisma.js", () => ({
@@ -17,6 +18,11 @@ vi.mock("../src/lib/prisma.js", () => ({
     job: { findMany: mocks.findJobs },
     diagnosis: { create: mocks.createDiagnosis, findFirst: mocks.findLatestDiagnosis },
   },
+}));
+
+// AI はテストで本物を呼ばない（共有予算を使わない・結果を決まったものにする）
+vi.mock("../src/lib/strengthAi.js", () => ({
+  generateStrengthDescriptions: mocks.generateStrengths,
 }));
 
 import request from "supertest";
@@ -77,6 +83,8 @@ describe("POST /v1/diagnoses", () => {
       id: 3001,
       createdAt: new Date("2026-10-05T03:21:00Z"),
     });
+    // いつもは AI が失敗した（＝固定文）ことにする。既存のテストはこの前提で書かれている
+    mocks.generateStrengths.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -241,7 +249,7 @@ describe("POST /v1/diagnoses", () => {
       jobCount: 2,
     });
 
-    // ② 保存に渡した中身（1回だけ呼ばれ、AI未接続の印が付いている）
+    // ② 保存に渡した中身（1回だけ呼ばれ、AI が使えなかった＝固定文の印が付いている）
     expect(mocks.createDiagnosis).toHaveBeenCalledTimes(1);
     const data = mocks.createDiagnosis.mock.calls[0][0].data;
     expect(data).toMatchObject({ studentId: 101, usedFallback: true, aiModel: null });
@@ -262,6 +270,73 @@ describe("POST /v1/diagnoses", () => {
         whyText: "「こだわる力」があなたの強みとして、この仕事につながっているかもしれません。",
       },
     ]);
+  });
+
+  it("AI が説明文を作れた場合は、AI の文で保存して返す（usedFallback: false・ai_model を保存）", async () => {
+    // このテストだけ、AI が成功したことにする
+    mocks.generateStrengths.mockResolvedValue({
+      descriptions: new Map([
+        ["explore", "AIが考えた探究の説明がありそう。"],
+        ["express", "AIが考えた表現の説明がありそう。"],
+        ["craft", "AIが考えたこだわるの説明がありそう。"],
+      ]),
+      model: "openai/gpt-oss-120b",
+    });
+
+    const res = await request(createApp())
+      .post("/v1/diagnoses")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`)
+      .send(VALID_BODY);
+
+    // ① レスポンスの説明文が AI の文になっている
+    expect(res.status).toBe(201);
+    expect(res.body.strengths).toEqual([
+      { code: "explore", title: "探究する力", description: "AIが考えた探究の説明がありそう。" },
+      { code: "express", title: "表現する力", description: "AIが考えた表現の説明がありそう。" },
+      { code: "craft", title: "こだわる力", description: "AIが考えたこだわるの説明がありそう。" },
+    ]);
+
+    // ② 保存も AI の文で、AI を使えた印が付いている
+    const data = mocks.createDiagnosis.mock.calls[0][0].data;
+    expect(data).toMatchObject({ usedFallback: false, aiModel: "openai/gpt-oss-120b" });
+    expect(data.strengths.create.map((s: { description: string }) => s.description)).toEqual([
+      "AIが考えた探究の説明がありそう。",
+      "AIが考えた表現の説明がありそう。",
+      "AIが考えたこだわるの説明がありそう。",
+    ]);
+  });
+
+  it("AI には、強みの code・特性名・説明だけを渡す（id や sortOrder は渡さない）", async () => {
+    const res = await request(createApp())
+      .post("/v1/diagnoses")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`)
+      .send(VALID_BODY);
+
+    expect(res.status).toBe(201);
+    expect(mocks.generateStrengths).toHaveBeenCalledWith([
+      { code: "explore", label: "探究する力", description: "探究の説明" },
+      { code: "express", label: "表現する力", description: "表現の説明" },
+      { code: "craft", label: "こだわる力", description: "こだわるの説明" },
+    ]);
+  });
+
+  it("入力エラー（他の質問の選択肢）の場合は、AI を呼ばない", async () => {
+    const res = await request(createApp())
+      .post("/v1/diagnoses")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`)
+      .send({
+        ...VALID_BODY,
+        answers: [
+          { questionId: 1, optionId: 21 },
+          { questionId: 2, optionId: 21 },
+          { questionId: 3, optionId: 32 },
+          { questionId: 4, optionId: 41 },
+          { questionId: 5, optionId: 51 },
+        ],
+      });
+
+    expect(res.status).toBe(400);
+    expect(mocks.generateStrengths).not.toHaveBeenCalled();
   });
 });
 
