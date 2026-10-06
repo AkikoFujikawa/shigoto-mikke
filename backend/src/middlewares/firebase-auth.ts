@@ -4,18 +4,36 @@ import { Request, Response, NextFunction } from "express";
 import { prisma } from "../lib/prisma.js";
 import { logger } from "../config/logger.js";
 
-// Firebase を初期化（1回だけ実行）
-const firebaseConfig = {
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-};
+const REQUIRED_FIREBASE_ENV = [
+  "FIREBASE_PROJECT_ID",
+  "FIREBASE_PRIVATE_KEY",
+  "FIREBASE_CLIENT_EMAIL",
+] as const;
 
-// 既に初期化されている場合は再初期化しない
-if (!getApps().length) {
-  initializeApp({
-    credential: cert(firebaseConfig),
-  });
+// モジュール読み込み時には初期化しない。Firebase 未設定の環境でもサーバーを起動できるようにし、
+// 設定ミスは最初の認証リクエスト（または起動時に呼ぶ場合はその時点）で原因が分かる形で失敗させる。
+export function initFirebaseAdmin(): void {
+  if (getApps().length) return;
+
+  const missing = REQUIRED_FIREBASE_ENV.filter((name) => !process.env[name]);
+  if (missing.length > 0) {
+    throw new Error(`Firebase の環境変数が未設定です: ${missing.join(", ")}`);
+  }
+
+  try {
+    initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      }),
+    });
+  } catch (error) {
+    throw new Error(
+      "Firebase の初期化に失敗しました。FIREBASE_PRIVATE_KEY の形式（改行を \\n で表した1行）などを確認してください",
+      { cause: error },
+    );
+  }
 }
 
 export const authenticateAdmin = async (
@@ -24,6 +42,8 @@ export const authenticateAdmin = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
+    initFirebaseAdmin();
+
     // Step 1️⃣: Authorization ヘッダーを取得
     const authHeader = req.headers.authorization;
 
