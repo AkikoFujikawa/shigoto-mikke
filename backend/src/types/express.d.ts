@@ -5,6 +5,11 @@ declare global {
         id: number;
         schoolId: number;
       };
+      user?: {
+        role: "school_admin";
+        id: number;
+        schoolId: number;
+      };
     }
   }
 }

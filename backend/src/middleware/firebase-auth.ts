@@ -1,4 +1,5 @@
-import admin from "firebase-admin";
+import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "../lib/prisma.js";
 import { logger } from "../config/logger.js";
@@ -6,14 +7,14 @@ import { logger } from "../config/logger.js";
 // Firebase を初期化（1回だけ実行）
 const firebaseConfig = {
   projectId: process.env.FIREBASE_PROJECT_ID,
-  privateKey: process.env.FIREBASE_PRIVATE_KEY,
+  privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
   clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
 };
 
 // 既に初期化されている場合は再初期化しない
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(firebaseConfig),
+if (!getApps().length) {
+  initializeApp({
+    credential: cert(firebaseConfig),
   });
 }
 
@@ -44,9 +45,9 @@ export const authenticateAdmin = async (
     // Step 4️⃣: Firebase でトークンを検証
     let decodedToken;
     try {
-      decodedToken = await admin.auth().verifyIdToken(idToken);
+      decodedToken = await getAuth().verifyIdToken(idToken);
     } catch (error) {
-      logger.warn("Firebase トークン検証エラー:", error);
+      logger.warn({ err: error }, "Firebase トークン検証エラー");
       res.status(401).json({
         error: {
           code: "UNAUTHORIZED",
@@ -88,7 +89,7 @@ export const authenticateAdmin = async (
     // 次のミドルウェア・ルートハンドラへ
     next();
   } catch (error) {
-    logger.error("認証ミドルウェアエラー:", error);
+    logger.error({ err: error }, "認証ミドルウェアエラー");
     res.status(500).json({
       error: {
         code: "INTERNAL_ERROR",
