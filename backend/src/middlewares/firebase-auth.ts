@@ -97,8 +97,8 @@ export const authenticateAdmin = async (
       return;
     }
 
-    // Step 7️⃣: req.user にセット
-    req.user = {
+    // Step 7️⃣: req.admin にセット
+    req.admin = {
       role: "school_admin" as const,
       id: schoolAdmin.id,
       schoolId: schoolAdmin.schoolId,

@@ -5,7 +5,7 @@ declare global {
         id: number;
         schoolId: number;
       };
-      user?: {
+      admin?: {
         role: "school_admin";
         id: number;
         schoolId: number;
