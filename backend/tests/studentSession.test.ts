@@ -14,6 +14,12 @@ vi.mock("../src/lib/prisma.js", () => ({
   },
 }));
 
+// レート制限はここでは確かめない（tests/rateLimit.test.ts で確かめる）。毎回そのまま通すことにする
+vi.mock("../src/middlewares/rateLimit.js", () => {
+  const passThrough = () => (_req: unknown, _res: unknown, next: () => void) => next();
+  return { rateLimit: passThrough, failureRateLimit: passThrough };
+});
+
 import { createApp } from "../src/app.js";
 
 const SECRET = "test-session-secret";
