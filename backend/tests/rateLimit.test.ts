@@ -2,16 +2,17 @@ const mocks = vi.hoisted(() => ({
   incr: vi.fn(),
   expire: vi.fn(),
   ttl: vi.fn(),
+  get: vi.fn(),
 }));
 
 vi.mock("../src/lib/redis.js", () => ({
-  redis: { incr: mocks.incr, expire: mocks.expire, ttl: mocks.ttl },
+  redis: { incr: mocks.incr, expire: mocks.expire, ttl: mocks.ttl, get: mocks.get },
 }));
 
 import express from "express";
 import request from "supertest";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { rateLimit } from "../src/middlewares/rateLimit.js";
+import { failureRateLimit, rateLimit } from "../src/middlewares/rateLimit.js";
 
 // テスト用の小さなアプリ。10分に3回まで通す制限をつける
 function createTestApp(identify: () => string | null = () => "student-1") {
@@ -87,5 +88,76 @@ describe("rateLimit", () => {
     const res = await request(createTestApp()).get("/limited");
 
     expect(res.status).toBe(200);
+  });
+});
+
+// 返事を送り終わったあとの処理（res.on("finish")）が終わるのを、少しだけ待つ
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+// テスト用の小さなアプリ。指定したステータスを返す。404 のときだけ数えて、10分に3回まで
+function createFailureTestApp(status: number) {
+  const app = express();
+  app.get(
+    "/session",
+    failureRateLimit({
+      prefix: "rl:test-fail",
+      limit: 3,
+      windowSeconds: 600,
+      identify: () => "1.2.3.4",
+      isFailure: (statusCode) => statusCode === 404,
+    }),
+    (_req, res) => {
+      res.status(status).json({});
+    },
+  );
+  return app;
+}
+
+describe("failureRateLimit", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("失敗（404）のときは、回数を1増やして、10分のタイマーをセットする", async () => {
+    // 今までの失敗は0回（キーが無い）、1増やしたら1回目、という状況
+    mocks.get.mockResolvedValue(null);
+    mocks.incr.mockResolvedValue(1);
+
+    const res = await request(createFailureTestApp(404)).get("/session");
+    await flush();
+
+    expect(res.status).toBe(404);
+    expect(mocks.incr).toHaveBeenCalledWith("rl:test-fail:1.2.3.4");
+    expect(mocks.expire).toHaveBeenCalledWith("rl:test-fail:1.2.3.4", 600);
+  });
+
+  // TODO ⑥ 成功（201）のときは、回数を数えない
+  it("成功（201）のときは、回数を数えない", async () => {
+    mocks.get.mockResolvedValue(null);
+
+    const res = await request(createFailureTestApp(201)).get("/session");
+    await flush();
+
+    expect(res.status).toBe(201);
+    expect(mocks.incr).not.toHaveBeenCalled();
+  });
+  // TODO ⑦ 失敗が上限（3回）に達していたら、429 を返す
+  it("失敗が上限（3回）に達していたら、429 RATE_LIMITED を返す", async () => {
+    // 今までの失敗が3回、という状況（Redis は文字列で返す）
+    mocks.get.mockResolvedValue("3");
+    mocks.ttl.mockResolvedValue(300);
+
+    const res = await request(createFailureTestApp(201)).get("/session");
+
+    expect(res.status).toBe(429);
+    expect(res.headers["retry-after"]).toBe("300");
+  });
+  // TODO ⑧ Redis が使えないときは、制限せずに通す
+  it("Redis が使えないときは、制限せずに通す", async () => {
+    mocks.get.mockRejectedValue(new Error("Redis down"));
+
+    const res = await request(createFailureTestApp(201)).get("/session");
+
+    expect(res.status).toBe(201);
   });
 });
