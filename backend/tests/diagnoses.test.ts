@@ -25,6 +25,12 @@ vi.mock("../src/lib/strengthAi.js", () => ({
   generateStrengthDescriptions: mocks.generateStrengths,
 }));
 
+// レート制限はここでは確かめない（tests/rateLimit.test.ts で確かめる）。毎回そのまま通すことにする
+vi.mock("../src/middlewares/rateLimit.js", () => {
+  const passThrough = () => (_req: unknown, _res: unknown, next: () => void) => next();
+  return { rateLimit: passThrough, failureRateLimit: passThrough };
+});
+
 import request from "supertest";
 import { makeStudentToken, TEST_SESSION_SECRET } from "./helpers/studentToken.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

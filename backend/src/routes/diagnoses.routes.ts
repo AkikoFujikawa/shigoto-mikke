@@ -7,6 +7,7 @@ import {
 } from "../controllers/diagnoses.controller.js";
 import { requireStudent } from "../middlewares/requireStudent.js";
 import { handleValidationErrors } from "../middlewares/validate.js";
+import { rateLimit } from "../middlewares/rateLimit.js";
 
 // API設計 §3.5。形のチェック（個数・整数・重複）はここで行い、
 // DBを見るチェック（存在するID・その質問の選択肢か）はコントローラーで行う
@@ -17,9 +18,21 @@ export const diagnosesRouter = Router();
 const hasNoDuplicates = (values: unknown[]) =>
   new Set(values.map((value) => Number(value))).size === values.length;
 
+// 診断は AI を呼ぶため、生徒ごとに回数を制限する（API設計 §5・DB設計 §8 rl:diag:{student_id}）
+const DIAGNOSIS_RATE_LIMIT = 5;
+const DIAGNOSIS_RATE_WINDOW_SECONDS = 10 * 60;
+
+const diagnosisRateLimit = rateLimit({
+  prefix: "rl:diag",
+  limit: DIAGNOSIS_RATE_LIMIT,
+  windowSeconds: DIAGNOSIS_RATE_WINDOW_SECONDS,
+  identify: (req) => (req.student ? String(req.student.id) : null),
+});
+
 diagnosesRouter.post(
   "/diagnoses",
   requireStudent,
+  diagnosisRateLimit,
   body("interestIds")
     .isArray({ min: 1, max: 3 })
     .withMessage("1〜3個選んでください")
