@@ -240,7 +240,7 @@ const DEMO_SCHOOLS: DemoSchool[] = [
     schoolCode: "DEMOTRIAL",
     name: "デモ高等学校（無料体験中）",
     adminEmail: "demo-trial@example.com",
-    firebaseUid: "REPLACE_WITH_FIREBASE_UID_TRIAL",
+    firebaseUid: "L2wZcKDLiuMpDMeFnJtZu0lZa1s1",
     contract: {
       status: "trial",
       trialEndsAt: daysFromNow(18),
@@ -254,7 +254,7 @@ const DEMO_SCHOOLS: DemoSchool[] = [
     schoolCode: "DEMOEXPIRED",
     name: "デモ高等学校（無料体験終了）",
     adminEmail: "demo-expired@example.com",
-    firebaseUid: "REPLACE_WITH_FIREBASE_UID_EXPIRED",
+    firebaseUid: "L2wZcKDLiuMpDMeFnJtZu0lZa1s1",
     contract: {
       status: "trial",
       trialEndsAt: daysFromNow(-5),
@@ -268,7 +268,7 @@ const DEMO_SCHOOLS: DemoSchool[] = [
     schoolCode: "DEMOACTIVE",
     name: "デモ高等学校（契約中）",
     adminEmail: "demo-active@example.com",
-    firebaseUid: "REPLACE_WITH_FIREBASE_UID_ACTIVE",
+    firebaseUid: "L2wZcKDLiuMpDMeFnJtZu0lZa1s1",
     contract: {
       status: "active",
       trialEndsAt: daysFromNow(-60),
@@ -282,7 +282,7 @@ const DEMO_SCHOOLS: DemoSchool[] = [
     schoolCode: "DEMORENEW",
     name: "デモ高等学校（契約期限切れ）",
     adminEmail: "demo-renew@example.com",
-    firebaseUid: "REPLACE_WITH_FIREBASE_UID_RENEW",
+    firebaseUid: "L2wZcKDLiuMpDMeFnJtZu0lZa1s1",
     contract: {
       status: "active",
       trialEndsAt: daysFromNow(-430),

@@ -1,0 +1,99 @@
+import admin from "firebase-admin";
+import { Request, Response, NextFunction } from "express";
+import { prisma } from "../lib/prisma.js";
+import { logger } from "../config/logger.js";
+
+// Firebase を初期化（1回だけ実行）
+const firebaseConfig = {
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  privateKey: process.env.FIREBASE_PRIVATE_KEY,
+  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+};
+
+// 既に初期化されている場合は再初期化しない
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(firebaseConfig),
+  });
+}
+
+export const authenticateAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    // Step 1️⃣: Authorization ヘッダーを取得
+    const authHeader = req.headers.authorization;
+
+    // Step 2️⃣: "Bearer <token>" 形式か確認
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      logger.warn("認証ヘッダーがありません");
+      res.status(401).json({
+        error: {
+          code: "UNAUTHORIZED",
+          message: "トークンがありません",
+        },
+      });
+      return;
+    }
+
+    // Step 3️⃣: "Bearer " を削除してトークン部分だけ抽出
+    const idToken = authHeader.substring(7);
+
+    // Step 4️⃣: Firebase でトークンを検証
+    let decodedToken;
+    try {
+      decodedToken = await admin.auth().verifyIdToken(idToken);
+    } catch (error) {
+      logger.warn("Firebase トークン検証エラー:", error);
+      res.status(401).json({
+        error: {
+          code: "UNAUTHORIZED",
+          message: "トークンが無効です",
+        },
+      });
+      return;
+    }
+
+    // Step 5️⃣: Firebase UID を取得
+    const firebaseUid = decodedToken.uid;
+
+    // Step 6️⃣: DB から管理者を検索
+    const schoolAdmin = await prisma.schoolAdmin.findUnique({
+      where: { firebaseUid },
+      include: { school: true },
+    });
+
+    if (!schoolAdmin) {
+      logger.warn(`Firebase UID が DB に見つかりません: ${firebaseUid}`);
+      res.status(403).json({
+        error: {
+          code: "FORBIDDEN",
+          message: "権限がありません",
+        },
+      });
+      return;
+    }
+
+    // Step 7️⃣: req.user にセット
+    req.user = {
+      role: "school_admin" as const,
+      id: schoolAdmin.id,
+      schoolId: schoolAdmin.schoolId,
+    };
+
+    logger.info(`管理者認証成功: id=${schoolAdmin.id}, schoolId=${schoolAdmin.schoolId}`);
+
+    // 次のミドルウェア・ルートハンドラへ
+    next();
+  } catch (error) {
+    logger.error("認証ミドルウェアエラー:", error);
+    res.status(500).json({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "サーバーエラーが発生しました",
+      },
+    });
+  }
+};
