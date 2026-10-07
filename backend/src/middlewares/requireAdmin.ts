@@ -37,7 +37,7 @@ export function initFirebaseAdmin(): void {
   }
 }
 
-const UNAUTHORIZED_BODY = {
+export const UNAUTHORIZED_BODY = {
   error: { code: "UNAUTHORIZED", message: "認証できませんでした。もう一度お試しください" },
 };
 
