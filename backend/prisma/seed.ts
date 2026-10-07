@@ -554,9 +554,7 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
-    try {
-      await redis.quit();
-    } catch (err) {
-      console.error("[seed] Redis切断時にエラー（無視して終了）:", err);
-    }
+    // quit() は Redis の返事を待つため、つながらないと接続が閉じられず、seed が終了しなくなる（#122）。
+    // キャッシュの削除はここまでに終わっているので、返事を待たずにこちらから閉じる。
+    redis.disconnect();
   });
