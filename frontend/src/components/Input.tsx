@@ -4,7 +4,9 @@ type InputProps = {
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
-  type?: "text" | "password";
+  type?: "text" | "password" | "email";
+  name?: string;
+  autoComplete?: string;
 };
 
 export default function Input({
@@ -14,6 +16,8 @@ export default function Input({
   onChange,
   disabled = false,
   type = "text",
+  name,
+  autoComplete,
 }: InputProps) {
   return (
     <label className="block w-full">
@@ -21,6 +25,8 @@ export default function Input({
 
       <input
         type={type}
+        name={name}
+        autoComplete={autoComplete}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
