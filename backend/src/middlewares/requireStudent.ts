@@ -1,11 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
+import { extractBearerToken } from "../lib/bearerToken.js";
 import { prisma } from "../lib/prisma.js";
 import { verifyStudentToken } from "../lib/sessionToken.js";
-
-function extractBearerToken(header: string | undefined): string | null {
-  const match = header?.match(/^Bearer (\S+)$/);
-  return match ? match[1] : null;
-}
 
 async function findAuthenticatedStudent(
   header: string | undefined,

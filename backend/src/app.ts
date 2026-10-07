@@ -10,6 +10,7 @@ import { studentsRouter } from "./routes/students.routes.js";
 import { mastersRouter } from "./routes/masters.routes.js";
 import { diagnosesRouter } from "./routes/diagnoses.routes.js";
 import { jobsRouter } from "./routes/jobs.routes.js";
+import { meRouter } from "./routes/me.routes.js";
 
 export function createApp(): Express {
   const app = express();
@@ -25,6 +26,7 @@ export function createApp(): Express {
   app.use("/v1", mastersRouter);
   app.use("/v1", diagnosesRouter);
   app.use("/v1", jobsRouter);
+  app.use("/v1", meRouter);
 
   app.use(handleUnexpectedError);
 
