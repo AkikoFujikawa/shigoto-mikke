@@ -87,7 +87,9 @@ export default function AdminLoginPage() {
 
       // 管理者として確認できなかった場合は、ログイン状態を残さない
       await signOut(auth);
-      setFormError(response.status === 403 ? NO_PERMISSION_MESSAGE : NETWORK_ERROR_MESSAGE);
+      if (response.status === 403) setFormError(NO_PERMISSION_MESSAGE);
+      else if (response.status === 401) setFormError(UNAUTHORIZED_MESSAGE);
+      else setFormError(NETWORK_ERROR_MESSAGE);
     } catch (error) {
       if (error instanceof FirebaseError && AUTH_FAILURE_CODES.includes(error.code)) {
         setFormError(AUTH_FAILURE_MESSAGE);
