@@ -382,12 +382,13 @@ sequenceDiagram
 
 | HTTP | code | 意味 | フロントの対応 |
 | ---- | ---- | ---- | -------------- |
-| 400 | VALIDATION_ERROR | 入力検証エラー | 入力欄の下に表示 |
+| 400 | VALIDATION_ERROR | 入力検証エラー（壊れた JSON を含む） | 入力欄の下に表示 |
 | 401 | UNAUTHORIZED | トークンがない・不正・期限切れ | 生徒：入口（UI-S01）へ／管理者：ログイン画面へ |
 | 403 | FORBIDDEN | ロール不足／未登録ユーザー | 権限エラー、または登録画面へ |
 | ~~403~~ | ~~SCHOOL_NOT_AVAILABLE~~ | ~~契約切れの学校~~ **（今回は実装しない）** | ~~「このコードは現在ご利用いただけません」~~ |
 | 404 | SCHOOL_CODE_NOT_FOUND | 学校コードが存在しない | 「学校コードが見つかりません」 |
 | 404 | JOB_NOT_FOUND / DIAGNOSIS_NOT_FOUND | 対象なし | 共通エラー／診断へ誘導 |
+| 404 | NOT_FOUND | 存在しない URL | 共通エラー |
 | 409 | ALREADY_REGISTERED | すでに学校として登録済み（管理者のみ） | 管理画面へ誘導 |
 | 409 | ALREADY_SUBSCRIBED | すでに契約中 | 表示更新 |
 | 429 | RATE_LIMITED | 回数制限 | 「しばらくしてからもう一度」 |
