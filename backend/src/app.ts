@@ -5,6 +5,7 @@ import { pinoHttp } from "pino-http";
 import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
 import { handleUnexpectedError } from "./middlewares/errorHandler.js";
+import { handleNotFound } from "./middlewares/notFound.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { studentsRouter } from "./routes/students.routes.js";
 import { mastersRouter } from "./routes/masters.routes.js";
@@ -28,6 +29,7 @@ export function createApp(): Express {
   app.use("/v1", jobsRouter);
   app.use("/v1", meRouter);
 
+  app.use(handleNotFound);
   app.use(handleUnexpectedError);
 
   return app;
