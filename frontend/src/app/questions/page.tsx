@@ -221,9 +221,9 @@ export default function QuestionsPage() {
 
       if (succeeded) {
         router.replace("/strengths");
-        return;
+      } else {
+        setDiagnosisLoading(false);
       }
-      setDiagnosisLoading(false);
     }
   };
   const question = questions[currentQuestion];

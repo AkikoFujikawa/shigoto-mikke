@@ -22,10 +22,15 @@ export default function StrengthsPage() {
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const storedStrengths = sessionStorage.getItem("strengths");
-    if (storedStrengths) {
-      setStrengths(JSON.parse(storedStrengths));
+    try {
+      if (storedStrengths) {
+        setStrengths(JSON.parse(storedStrengths));
+      }
+    } catch (error) {
+      console.error("強みデータの読み込みに失敗しました", error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   if (isLoading) {
