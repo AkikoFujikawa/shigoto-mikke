@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import LoadingState from "@/components/LoadingState";
 
 type Strength = {
   code: string;
@@ -18,12 +19,23 @@ const strengthEmojis: Record<string, string> = {
 
 export default function StrengthsPage() {
   const [strengths, setStrengths] = useState<Strength[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const storedStrengths = sessionStorage.getItem("strengths");
-    if (storedStrengths) {
-      setStrengths(JSON.parse(storedStrengths));
+    try {
+      if (storedStrengths) {
+        setStrengths(JSON.parse(storedStrengths));
+      }
+    } catch (error) {
+      console.error("強みデータの読み込みに失敗しました", error);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
+
+  if (isLoading) {
+    return <LoadingState message="結果を読み込み中..." />;
+  }
 
   return (
     <div className="min-h-screen bg-background">

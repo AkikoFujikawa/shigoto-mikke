@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 type Question = {
   id: number;
@@ -39,6 +40,7 @@ const growthMessages = [
 ];
 
 export default function QuestionsPage() {
+  const router = useRouter();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -217,8 +219,11 @@ export default function QuestionsPage() {
 
       await new Promise((resolve) => setTimeout(resolve, remaining));
 
-      setDiagnosisLoading(false);
-      if (succeeded) window.location.href = "/strengths";
+      if (succeeded) {
+        router.replace("/strengths");
+      } else {
+        setDiagnosisLoading(false);
+      }
     }
   };
   const question = questions[currentQuestion];
