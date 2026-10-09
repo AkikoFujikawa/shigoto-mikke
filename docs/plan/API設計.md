@@ -332,7 +332,7 @@ sequenceDiagram
 }
 ```
 
-`contract.status`：`trial`（無料体験中）／`trial_expired`（無料体験終了）／`active`（契約中）／`contract_expired`（契約期限切れ）。`daysLeft` は `trial` のときのみ。`activeEndsAt` は `active`／`contract_expired` のときのみ。**状態の判定はサーバー側**（`trialEndsAt`／`activeEndsAt` と現在時刻から計算。DBには `trial`／`active` の2値のみ保存）で、フロントは表示するだけ。**契約期限切れでも、生徒側のAPI・画面は制限しない**（`FR-A05` は実施しない。この判定は管理画面の表示専用）。
+`contract.status`：`trial`（無料体験中）／`trial_expired`（無料体験終了）／`active`（契約中）／`contract_expired`（契約期限切れ）。`daysLeft` は `trial` のときのみ（`trialEndsAt` までの残り時間を日数に直して**切り上げ**る。残り1日未満でも `1` で、`0` にはならない）。`activeEndsAt` は `active`／`contract_expired` のときのみ。**状態の判定はサーバー側**（`trialEndsAt`／`activeEndsAt` と現在時刻から計算。DBには `trial`／`active` の2値のみ保存）で、フロントは表示するだけ。**契約期限切れでも、生徒側のAPI・画面は制限しない**（`FR-A05` は実施しない。この判定は管理画面の表示専用）。
 
 #### POST /v1/billing/checkout-session
 
