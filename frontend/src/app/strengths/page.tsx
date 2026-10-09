@@ -82,7 +82,7 @@ export default function StrengthsPage() {
             window.location.href = "/jobs";
           }}
         >
-          仕事を見てみる 🚀
+          仕事を見てみる
         </button>
         <button
           type="button"
