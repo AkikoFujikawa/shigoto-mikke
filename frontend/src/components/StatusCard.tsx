@@ -20,9 +20,9 @@ function Badge({ className, children }: BadgeProps) {
 // 申込・更新の処理（Stripe Checkout）は #68。それまでは押せない状態で表示だけする
 function ApplyButton({ label }: { label: string }) {
   return (
-    <div className="mt-md max-w-xs">
+    <div className="mt-md">
       <Button disabled>{label}</Button>
-      <p className="mt-xs text-sm text-gray-500">準備中です</p>
+      <p className="mt-xs text-center text-sm text-gray-500">準備中です</p>
     </div>
   );
 }
