@@ -85,7 +85,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-background">
       <AppHeader onLogout={handleLogout} logoutDisabled={isLoggingOut} />
 
-      <main className="mx-auto flex w-full max-w-3xl flex-col gap-md px-md py-lg">
+      <main className="mx-auto flex w-full max-w-xl flex-col gap-md px-md py-lg">
         <h1 className="flex flex-wrap items-baseline gap-sm text-lg font-bold text-navy">
           {load.kind === "ready" && <span>🏫 {load.data.school.name}</span>}
           <span className="text-sm font-normal text-gray-600">管理者ページ</span>
