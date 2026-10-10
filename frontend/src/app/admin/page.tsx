@@ -64,7 +64,8 @@ export default function AdminPage() {
   if (status === "error") {
     return (
       <ErrorState
-        message="管理者の確認ができませんでした。もう一度お試しください"
+        title="管理者の確認ができませんでした"
+        message="通信を確認して、もう一度お試しください"
         onRetry={retry}
       />
     );

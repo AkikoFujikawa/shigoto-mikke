@@ -1,12 +1,14 @@
 import Image from "next/image";
 
 type ErrorStateProps = {
+  title?: string;
   message?: string;
   onRetry?: () => void;
   onBack?: () => void;
 };
 
 export default function ErrorState({
+  title = "うまく結果を取得できませんでした",
   message = "うまく結果を取得できませんでした",
   onRetry,
   onBack,
@@ -17,7 +19,7 @@ export default function ErrorState({
       className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center"
     >
       <div className="mb-2 text-4xl">⚠️</div>
-      <h2 className="text-lg font-bold text-navy">うまく結果を取得できませんでした</h2>
+      <h2 className="text-lg font-bold text-navy">{title}</h2>
       <p className="mt-2 max-w-xs text-base leading-7 text-gray-600">{message}</p>
       <Image
         src="/characters/tanecchi/ErrorState.png"
