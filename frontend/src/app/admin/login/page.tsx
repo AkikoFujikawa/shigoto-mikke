@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
@@ -22,6 +22,7 @@ const AUTH_FAILURE_CODES = [
 const NO_PERMISSION_MESSAGE =
   "このアカウントには管理者権限がありません。運営にお問い合わせください";
 const NETWORK_ERROR_MESSAGE = "通信に失敗しました。もう一度お試しください";
+const UNAUTHORIZED_MESSAGE = "認証できませんでした。もう一度ログインしてください";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -32,6 +33,30 @@ export default function AdminLoginPage() {
   const [passwordError, setPasswordError] = useState("");
   const [formError, setFormError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // 管理画面のガードから戻されたときは、理由を表示する
+    const reason = new URLSearchParams(window.location.search).get("reason");
+    if (reason === "forbidden") setFormError(NO_PERMISSION_MESSAGE);
+    else if (reason === "unauthorized") setFormError(UNAUTHORIZED_MESSAGE);
+  }, []);
+
+  useEffect(() => {
+    // すでにログインしている場合は管理画面へ（管理者かどうかの確認は、管理画面のガードが行う）
+    let cancelled = false;
+    (async () => {
+      try {
+        const auth = getFirebaseAuth();
+        await auth.authStateReady();
+        if (!cancelled && auth.currentUser) router.replace("/admin");
+      } catch {
+        // Firebase が未設定などの場合は、ログイン操作のときにエラーを表示する
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -62,7 +87,9 @@ export default function AdminLoginPage() {
 
       // 管理者として確認できなかった場合は、ログイン状態を残さない
       await signOut(auth);
-      setFormError(response.status === 403 ? NO_PERMISSION_MESSAGE : NETWORK_ERROR_MESSAGE);
+      if (response.status === 403) setFormError(NO_PERMISSION_MESSAGE);
+      else if (response.status === 401) setFormError(UNAUTHORIZED_MESSAGE);
+      else setFormError(NETWORK_ERROR_MESSAGE);
     } catch (error) {
       if (error instanceof FirebaseError && AUTH_FAILURE_CODES.includes(error.code)) {
         setFormError(AUTH_FAILURE_MESSAGE);
