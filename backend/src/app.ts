@@ -12,6 +12,7 @@ import { mastersRouter } from "./routes/masters.routes.js";
 import { diagnosesRouter } from "./routes/diagnoses.routes.js";
 import { jobsRouter } from "./routes/jobs.routes.js";
 import { meRouter } from "./routes/me.routes.js";
+import { schoolsRouter } from "./routes/schools.routes.js";
 
 export function createApp(): Express {
   const app = express();
@@ -28,6 +29,7 @@ export function createApp(): Express {
   app.use("/v1", diagnosesRouter);
   app.use("/v1", jobsRouter);
   app.use("/v1", meRouter);
+  app.use("/v1", schoolsRouter);
 
   app.use(handleNotFound);
   app.use(handleUnexpectedError);
