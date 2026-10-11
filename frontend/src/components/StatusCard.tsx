@@ -17,22 +17,36 @@ function Badge({ className, children }: BadgeProps) {
   );
 }
 
-// 申込・更新の処理（Stripe Checkout）は #68。それまでは押せない状態で表示だけする
-function ApplyButton({ label }: { label: string }) {
+type ApplyProps = {
+  /** 申込・更新ボタンを押したとき（Stripe Checkout へ移る。#68） */
+  onApply: () => void;
+  /** Stripe の画面へ移動している間は、二重に押せないようにする */
+  isApplying: boolean;
+  /** ボタンの下に出す案内（決済が完了していない、など）。無ければ出さない */
+  notice: string | null;
+};
+
+function ApplyButton({ label, onApply, isApplying, notice }: ApplyProps & { label: string }) {
   return (
     <div className="mt-md">
-      <Button disabled>{label}</Button>
-      <p className="mt-xs text-center text-sm text-gray-500">準備中です</p>
+      <Button onClick={onApply} disabled={isApplying}>
+        {isApplying ? "決済画面へ移動中…" : label}
+      </Button>
+      {notice && (
+        <p role="status" className="mt-xs text-center text-sm text-navy">
+          {notice}
+        </p>
+      )}
     </div>
   );
 }
 
-type StatusCardProps = {
+type StatusCardProps = ApplyProps & {
   contract: ContractView;
 };
 
 // 画面設計 UI-A03 のカード①。契約状態によって、同じ場所の表示を切り替える
-export default function StatusCard({ contract }: StatusCardProps) {
+export default function StatusCard({ contract, ...apply }: StatusCardProps) {
   return (
     <Card>
       <h2 className="text-sm text-gray-600">📄 ご利用状況</h2>
@@ -45,7 +59,7 @@ export default function StatusCard({ contract }: StatusCardProps) {
               無料体験終了日：{formatJapaneseDate(contract.trialEndsAt)}
             </p>
             <p className="mt-sm text-sm text-gray-600">{PRICE_TEXT}</p>
-            <ApplyButton label="有料プランに申し込む →" />
+            <ApplyButton label="有料プランに申し込む →" {...apply} />
           </>
         )}
 
@@ -55,7 +69,7 @@ export default function StatusCard({ contract }: StatusCardProps) {
               <span aria-hidden="true">⚠ </span>無料体験は終了しました
             </Badge>
             <p className="mt-sm text-sm text-gray-600">{PRICE_TEXT}</p>
-            <ApplyButton label="有料プランに申し込む →" />
+            <ApplyButton label="有料プランに申し込む →" {...apply} />
           </>
         )}
 
@@ -77,7 +91,7 @@ export default function StatusCard({ contract }: StatusCardProps) {
               <span aria-hidden="true">⚠ </span>契約の有効期限が切れました
             </Badge>
             <p className="mt-sm text-sm text-gray-600">{PRICE_TEXT}</p>
-            <ApplyButton label="契約を更新する →" />
+            <ApplyButton label="契約を更新する →" {...apply} />
           </>
         )}
       </div>
