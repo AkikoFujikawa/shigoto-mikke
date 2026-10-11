@@ -351,10 +351,10 @@ sequenceDiagram
 #### POST /v1/billing/webhook
 
 - Stripe の署名（`Stripe-Signature`）を **生ボディで検証**（不正なら 400）。JSON パースより前に生ボディを保持する設定が必要。
-- 処理するイベントは **`checkout.session.completed` のみ**。`payment_status` が `paid` であることを確認し、`client_reference_id`（`schoolId`）から学校を特定する。
-- 契約を更新：`status='active'`、`activatedAt`＝現在時刻、`activeEndsAt`＝`activatedAt`＋1年、支払いID（`stripePaymentIntentId`）を保存（契約更新時は上書き）。
+- 処理するイベントは **`checkout.session.completed` のみ**。`payment_status` が `paid` であることを確認し、`client_reference_id`（`schoolId`）から学校を特定する。**未払い、または学校を特定できない場合は、契約を更新せず、ログに残して 200 を返す**（200 以外を返すと、Stripe が再送を続けるため）。
+- 契約を更新：`status='active'`、`activatedAt`＝現在時刻、`activeEndsAt`＝`activatedAt`＋1年（**カレンダーで1年後**。2/29 は翌年の 3/1）、支払いID（`stripePaymentIntentId`）を保存（契約更新時は上書き）。顧客ID（`stripeCustomerId`）は、Stripe から届いたときだけ保存する（顧客を作る設定はしない）。
 - **冪等**：処理済みの `event.id` を保存し、二重受信では何もしないで 200 を返す。
-- 戻り：200（処理済み・無視するイベント含む）。
+- 戻り：200（処理済み・無視するイベント含む）。DB の障害などで契約を更新できなかった場合は 500（Stripe の再送で処理する）。
 
 ---
 

@@ -26,7 +26,8 @@
     "jsonwebtoken": "^9.0.3",
     "openai": "^7.27.0",
     "pino": "^9.5.0",
-    "pino-http": "^10.3.0"
+    "pino-http": "^10.3.0",
+    "stripe": "^23.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
