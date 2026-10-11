@@ -312,7 +312,7 @@ sequenceDiagram
 #### GET /v1/schools/me
 
 ```json
-// 無料体験中／無料体験終了
+// 無料体験中
 {
   "school": { "id": 7, "name": "上田みらい高等学校", "schoolCode": "UEDA123" },
   "contract": {
@@ -322,7 +322,16 @@ sequenceDiagram
   }
 }
 
-// 契約中／契約期限切れ
+// 無料体験終了（daysLeft は返さない）
+{
+  "school": { "id": 7, "name": "上田みらい高等学校", "schoolCode": "UEDA123" },
+  "contract": {
+    "status": "trial_expired",
+    "trialEndsAt": "2026-10-04T00:00:00Z"
+  }
+}
+
+// 契約中（契約期限切れは status が contract_expired になるだけで、同じ形）
 {
   "school": { "id": 7, "name": "上田みらい高等学校", "schoolCode": "UEDA123" },
   "contract": {
