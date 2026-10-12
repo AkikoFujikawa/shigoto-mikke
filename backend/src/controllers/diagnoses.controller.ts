@@ -3,7 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import { matchedData } from "express-validator";
 import { rankJobCandidates, selectStrengths } from "../lib/matching.js";
 import { prisma } from "../lib/prisma.js";
-import { generateStrengthDescriptions } from "../lib/strengthAi.js";
+import { describeStrengths } from "../lib/strengthCache.js";
 import { buildWhyConnected } from "../lib/whyConnected.js";
 
 type Answer = { questionId: number; optionId: number };
@@ -84,12 +84,15 @@ export async function createDiagnosis(
     });
 
     // ---- 強みの説明を AI で作る（#65）。失敗・タイムアウト・不正な出力なら固定文にする（案A） ----
-    const ai = await generateStrengthDescriptions(
+    // 同じ強み3つの文が保存済みなら、AI を呼ばずにそれを使う（#70）
+    const ai = await describeStrengths(
       strengthTraits.map(({ code, label, description }) => ({ code, label, description })),
     );
     const descriptionOf = (trait: { code: string; description: string }) =>
       ai?.descriptions.get(trait.code) ?? trait.description;
-    if (ai) {
+    if (ai?.fromCache) {
+      req.log?.info({ aiModel: ai.model }, "保存済みの AI の強みの説明を使いました");
+    } else if (ai) {
       req.log?.info({ aiModel: ai.model }, "AI で強みの説明を生成しました");
     } else {
       req.log?.warn("AI が使えなかったため、強みの説明を固定文にフォールバックしました");

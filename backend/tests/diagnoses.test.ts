@@ -20,9 +20,10 @@ vi.mock("../src/lib/prisma.js", () => ({
   },
 }));
 
-// AI はテストで本物を呼ばない（共有予算を使わない・結果を決まったものにする）
-vi.mock("../src/lib/strengthAi.js", () => ({
-  generateStrengthDescriptions: mocks.generateStrengths,
+// AI はテストで本物を呼ばない（共有予算を使わない・結果を決まったものにする）。
+// キャッシュ（#70）の動きは tests/strengthCache.test.ts で確かめる
+vi.mock("../src/lib/strengthCache.js", () => ({
+  describeStrengths: mocks.generateStrengths,
 }));
 
 // レート制限はここでは確かめない（tests/rateLimit.test.ts で確かめる）。毎回そのまま通すことにする
@@ -287,6 +288,7 @@ describe("POST /v1/diagnoses", () => {
         ["craft", "AIが考えたこだわるの説明がありそう。"],
       ]),
       model: "openai/gpt-oss-120b",
+      fromCache: false,
     });
 
     const res = await request(createApp())
@@ -310,6 +312,28 @@ describe("POST /v1/diagnoses", () => {
       "AIが考えた表現の説明がありそう。",
       "AIが考えたこだわるの説明がありそう。",
     ]);
+  });
+
+  it("保存済みの AI の文を使った場合も、AI の文として保存する（usedFallback: false）", async () => {
+    mocks.generateStrengths.mockResolvedValue({
+      descriptions: new Map([
+        ["explore", "保存済みの探究の説明がありそう。"],
+        ["express", "保存済みの表現の説明がありそう。"],
+        ["craft", "保存済みのこだわるの説明がありそう。"],
+      ]),
+      model: "openai/gpt-oss-120b",
+      fromCache: true,
+    });
+
+    const res = await request(createApp())
+      .post("/v1/diagnoses")
+      .set("Authorization", `Bearer ${makeStudentToken(101, 7)}`)
+      .send(VALID_BODY);
+
+    expect(res.status).toBe(201);
+    expect(res.body.strengths[0].description).toBe("保存済みの探究の説明がありそう。");
+    const data = mocks.createDiagnosis.mock.calls[0][0].data;
+    expect(data).toMatchObject({ usedFallback: false, aiModel: "openai/gpt-oss-120b" });
   });
 
   it("AI には、強みの code・特性名・説明だけを渡す（id や sortOrder は渡さない）", async () => {
