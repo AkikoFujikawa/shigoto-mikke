@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   AI_MODEL,
   DESCRIPTION_MAX_LENGTH,
+  DESCRIPTION_MIN_LENGTH,
   buildMessages,
   generateStrengthDescriptions,
   validateStrengthDescriptions,
@@ -61,7 +62,7 @@ describe("validateStrengthDescriptions", () => {
         strengths: [
           VALID_OUTPUT.strengths[0],
           VALID_OUTPUT.strengths[1],
-          { code: "craft", description: "あ".repeat(DESCRIPTION_MAX_LENGTH + 1) },
+          { code: "craft", description: "あ".repeat(DESCRIPTION_MAX_LENGTH) + "。" },
         ],
       },
       EXPECTED_CODES,
@@ -71,18 +72,20 @@ describe("validateStrengthDescriptions", () => {
   });
 
   it("説明文がちょうど200文字の場合は、OK として返す", () => {
+    // AI には「。」で終わる文を頼んでいるので、例文も「。」で終える（#137）
+    const text = "あ".repeat(DESCRIPTION_MAX_LENGTH - 1) + "。";
     const result = validateStrengthDescriptions(
       {
         strengths: [
           VALID_OUTPUT.strengths[0],
           VALID_OUTPUT.strengths[1],
-          { code: "craft", description: "あ".repeat(DESCRIPTION_MAX_LENGTH) },
+          { code: "craft", description: text },
         ],
       },
       EXPECTED_CODES,
     );
 
-    expect(result?.get("craft")).toBe("あ".repeat(DESCRIPTION_MAX_LENGTH));
+    expect(result?.get("craft")).toBe(text);
   });
 
   it("断定表現（「理系に向いている」）を含む場合は、null を返す", () => {
@@ -101,9 +104,9 @@ describe("validateStrengthDescriptions", () => {
   });
 
   it.each([
-    "理系の勉強をするとよさそう。",
-    "この仕事に向いているかも。",
-    "必ず活かせる力がありそう。",
+    "理系の勉強をすると、力を伸ばせそうかも。",
+    "この仕事に向いているところがありそう。",
+    "必ず活かせる力を持っているところがありそう。",
     "詳しくは https://example.com を見てね。",
     "もっと学ぶべきかもしれません。",
   ])("禁止表現（%s）を含む場合は、null を返す", (description) => {
@@ -143,6 +146,45 @@ describe("validateStrengthDescriptions", () => {
     const result = validateStrengthDescriptions("こんにちは", EXPECTED_CODES);
 
     expect(result).toBeNull();
+  });
+
+  describe("壊れた出力を弾く（#137）", () => {
+    // 3つ目（craft）の説明文だけを差しかえて、チェックする
+    const withCraft = (description: string) =>
+      validateStrengthDescriptions(
+        {
+          strengths: [
+            VALID_OUTPUT.strengths[0],
+            VALID_OUTPUT.strengths[1],
+            { code: "craft", description },
+          ],
+        },
+        EXPECTED_CODES,
+      );
+
+    it("説明文がちょうど15文字の場合は、OK として返す", () => {
+      const text = "あ".repeat(DESCRIPTION_MIN_LENGTH - 1) + "。";
+      expect(withCraft(text)?.get("craft")).toBe(text);
+    });
+
+    it("説明文が短すぎる（14文字）場合は、null を返す", () => {
+      expect(withCraft("あ".repeat(DESCRIPTION_MIN_LENGTH - 2) + "。")).toBeNull();
+    });
+
+    it.each([
+      ["半角の「?」が続く", "新しいアイデアを次々に???思いつくところがありそう。"],
+      ["全角の「？」が続く", "新しいアイデアを次々に？？思いつくところがありそう。"],
+      ["文字化け（U+FFFD）を含む", "新しいアイデアを次々に\uFFFD\uFFFD思いつくところがありそう。"],
+      ["「。」で終わらない（途中で切れた文）", "新しいアイデアを次々に思いつくところがありそう"],
+      ["実際に出た壊れた文（「新しいアイ歩???」）", "新しいアイ歩???"],
+    ])("%s場合は、null を返す", (_label, description) => {
+      expect(withCraft(description)).toBeNull();
+    });
+
+    it("「？」が1つだけの場合は、OK として返す（弾きすぎない）", () => {
+      const text = "どうしてだろう？と気になることを、調べたくなるところがありそう。";
+      expect(withCraft(text)?.get("craft")).toBe(text);
+    });
   });
 });
 

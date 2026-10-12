@@ -23,6 +23,12 @@ export const FORBIDDEN_PATTERNS: RegExp[] = [
   /https?:\/\//,
 ];
 
+/** 説明文の最小文字数。プロンプトでは30〜45文字を頼んでいるが、少し短い文は通す。極端に短いものは壊れた出力とみなす（#137） */
+export const DESCRIPTION_MIN_LENGTH = 15;
+
+/** 壊れた出力の印（#137）。「?」「？」が2つ以上続く、文字化け（U+FFFD） */
+export const BROKEN_PATTERNS: RegExp[] = [/[?？]{2,}/, /\uFFFD/];
+
 export type StrengthForAi = {
   code: string;
   label: string;
@@ -49,8 +55,11 @@ export function validateStrengthDescriptions(
     if (!expectedCodes.includes(code) || result.has(code)) return null;
 
     const text = description.trim();
-    if (text.length === 0 || text.length > DESCRIPTION_MAX_LENGTH) return null;
+    if (text.length < DESCRIPTION_MIN_LENGTH || text.length > DESCRIPTION_MAX_LENGTH) return null;
     if (FORBIDDEN_PATTERNS.some((pattern) => pattern.test(text))) return null;
+    if (BROKEN_PATTERNS.some((pattern) => pattern.test(text))) return null;
+    // 途中で切れた文を弾く（#137）。語尾の言葉（「かも」など）は見ない
+    if (!text.endsWith("。")) return null;
 
     result.set(code, text);
   }
