@@ -21,10 +21,12 @@ export function createApp(): Express {
   app.use(helmet());
   // CORS は FRONTEND_URL のみ許可（API設計 §1・§6）
   app.use(cors({ origin: env.frontendUrl }));
+  // ログは、ボディを読むより前に用意する。あとに置くと、壊れた JSON・大きすぎる JSON・Webhook の
+  // リクエストが、ログに1行も残らない（#72）
+  app.use(pinoHttp({ logger }));
   // Stripe の Webhook は生のボディで署名を検証するため、express.json() より前に登録する（API設計 §3.7）
   app.use("/v1", billingWebhookRouter);
   app.use(express.json());
-  app.use(pinoHttp({ logger }));
 
   app.use("/v1", healthRouter);
   app.use("/v1", studentsRouter);

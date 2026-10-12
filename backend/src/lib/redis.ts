@@ -1,6 +1,7 @@
 import { Redis } from "ioredis";
 
 import { env } from "../config/env.js";
+import { logger } from "../config/logger.js";
 
 /**
  * Redis クライアントのシングルトン。
@@ -22,6 +23,7 @@ export const redis = new Redis(env.redisUrl, {
   commandTimeout: REDIS_COMMAND_TIMEOUT_MS,
 });
 
+// つながらないあいだは、再接続のたびに出る。ほかのログと同じ pino で出す（#72）
 redis.on("error", (err: Error) => {
-  console.error("[redis] connection error:", err.message);
+  logger.warn({ errMessage: err.message }, "Redis に接続できません");
 });
