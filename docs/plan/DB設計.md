@@ -647,7 +647,7 @@ DB ではないが、データの持ち方をそろえるため記載。TTL 切�
 | マスタ（好きなもの） | `master:interests` | JSON | 1時間 |
 | マスタ（質問） | `master:questions` | JSON | 1時間 |
 | 職業詳細（固定部分） | `master:job:{id}` | JSON | 1時間 |
-| 診断の生成結果 | `diag:{input_hash}` | JSON（強み＋職業ごとの文章） | 24時間 |
+| AI の強みの説明（#70） | `ai:strengths:{AI に送る内容の SHA-256}` | JSON（モデル名＋強み3つの説明文。検証を通ったものだけ） | 24時間 |
 | 診断のレート制限 | `rl:diag:{student_id}` | カウンタ | 10分 |
 | 登録のレート制限 | `rl:register:{ip}` | カウンタ | 10分 |
 | 全体のレート制限 | `rl:api:{user_id または ip}` | カウンタ | 1分 |
