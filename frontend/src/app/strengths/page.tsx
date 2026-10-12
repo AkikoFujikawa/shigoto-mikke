@@ -17,6 +17,40 @@ const strengthEmojis: Record<string, string> = {
   craft: "✂️",
 };
 
+// 自分で気づくためのヒント（固定文。AI は使わない。#142）。
+// 強みを言い当てるのではなく、本人が自分で思い出すきっかけにする。
+// 評価や断定の言葉（「得意」「向いている」など）と、「友だちに聞いてみよう」のような行動の呼びかけは入れない
+type StrengthHint = {
+  others: string; // 他の人から見ると
+  recall: string; // 思い出してみよう
+};
+
+const strengthHints: Record<string, StrengthHint> = {
+  explore: {
+    others: "まわりの人から、「それ、どうやって調べたの？」と聞かれたことはないかな。",
+    recall: "小学校や中学校で、夢中になって調べたことを1つ思い出してみよう。",
+  },
+  ideate: {
+    others: "友だちや家の人に、「それ、おもしろいね」と言われたことはないかな。",
+    recall: "前に自分で考えた工夫やアイデアで、うれしかったことを思い出してみよう。",
+  },
+  express: {
+    others: "まわりの人から、「わかりやすい」と言われたことはないかな。",
+    recall: "話したり書いたりして、伝わってうれしかったことを思い出してみよう。",
+  },
+  support: {
+    others: "友だちや家の人から、相談されたり「ありがとう」と言われたことはないかな。",
+    recall: "誰かの話を聞いたり、手伝ったりしたことを思い出してみよう。",
+  },
+  craft: {
+    others: "まわりの人から、「丁寧だね」と言われたことはないかな。",
+    recall: "最後まで仕上げて、達成感があったことを思い出してみよう。",
+  },
+};
+
+// 開いたヒントの最後に、毎回入れる一言（思い当たる経験がない子への配慮）
+const HINT_NOTE = "今は思いつかなくても大丈夫。";
+
 export default function StrengthsPage() {
   const [strengths, setStrengths] = useState<Strength[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,25 +101,61 @@ export default function StrengthsPage() {
           />
 
           <p className="relative mx-auto -mt-2 w-[200px] shrink-0 rounded-2xl border-2 border-brand bg-white px-4 py-4 text-center text-sm leading-7 text-navy">
-            好きなことや回答から、あなたの「強みのタネ」を見つけました！
+            あなたの今の強みのタネ
+            <br />
+            を見つけました。
+            <br />
+            これから変わっても
+            <br />
+            大丈夫！
             <span className="absolute left-[-9px] top-2/3 h-4 w-4 -translate-y-1/2 rotate-45 border-b-2 border-l-2 border-brand bg-white" />
           </p>
         </div>
         <div className="mt-6 space-y-4">
-          {strengths.map((strength) => (
-            <div
-              key={strength.code}
-              className="rounded-2xl border border-gray-200 bg-white p-5 shadow-card"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">{strengthEmojis[strength.code] ?? "🌱"}</span>
+          {strengths.map((strength) => {
+            // 定数に無い強みのコードのときは、ヒントの行を出さない
+            const hint: StrengthHint | undefined = strengthHints[strength.code];
 
-                <h2 className="text-lg font-bold text-navy">{strength.title}</h2>
+            return (
+              <div
+                key={strength.code}
+                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-card"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{strengthEmojis[strength.code] ?? "🌱"}</span>
+
+                  <h2 className="text-lg font-bold text-navy">{strength.title}</h2>
+                </div>
+
+                <p className="mt-3 text-base leading-7 text-navy">{strength.description}</p>
+
+                {hint && (
+                  <details className="group mt-3">
+                    <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between rounded-lg border border-brand/30 bg-brand/5 px-4 text-sm font-bold text-brand [&::-webkit-details-marker]:hidden">
+                      <span className="group-open:hidden">ヒントを見る</span>
+                      <span className="hidden group-open:inline">ヒントを閉じる</span>
+                      <span aria-hidden="true" className="text-xs group-open:rotate-180">
+                        ▼
+                      </span>
+                    </summary>
+                    <div className="mt-2 rounded-lg border-2 border-brand/40 px-4 py-3">
+                      <span className="inline-block rounded-sm bg-brand/10 px-2 py-0.5 text-xs font-bold text-brand">
+                        他の人から見ると
+                      </span>
+                      <p className="mt-1 text-sm leading-7 text-navy">{hint.others}</p>
+                      <span className="mt-3 inline-block rounded-sm bg-brand/10 px-2 py-0.5 text-xs font-bold text-brand">
+                        思い出してみよう
+                      </span>
+                      <p className="mt-1 text-sm leading-7 text-navy">{hint.recall}</p>
+                      <p className="mt-3 border-t border-brand/20 pt-2 text-xs leading-5 text-gray-500">
+                        {HINT_NOTE}
+                      </p>
+                    </div>
+                  </details>
+                )}
               </div>
-
-              <p className="mt-3 text-base leading-7 text-navy">{strength.description}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <button
           type="button"
