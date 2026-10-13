@@ -10,14 +10,17 @@
  *      → DB設計.md §6.2・§6.3 の確定値をそのままハードコード
  *   2. job_groups／academic_fields／jobs（＋ job_interests／job_traits／job_academic_fields）
  *      → prisma/seed-data/*.json から読み込み（xlsx 未確定のため、現在は空配列）
- *   3. デモ用の学校／学校管理者／契約（4パターン：無料体験中・無料体験終了・契約中・契約期限切れ）
+  *   3. デモ用の学校／学校管理者／契約（4パターン：無料体験中・無料体験終了・契約中・契約期限切れ）
  *      → 管理者の自己登録は廃止（#11）。UI-A03 の表示確認・デモ用に、このseedで用意する
- *      → ⚠️ school_admins.firebase_uid はプレースホルダー。実際にログインを試すには、
- *         Firebaseコンソールで対応するメールアドレスのアカウントを作成し、
- *         発行されたUIDに DEMO_SCHOOLS の値を書き換えること
+ *      → 学校名はすべて「上田みらい高等学校」（ワイヤーフレームと同じ）。学校コードで区別する（#79）
+ *      → school_admins.firebase_uid は、環境変数 SEED_FIREBASE_UID_TRIAL／_EXPIRED／_ACTIVE／_RENEW で渡す。
+ *         指定がなければプレースホルダーになり、その学校の管理画面にはログインできない（#79）
+ *      → ⚠️ 本番で2回目以降に流すときは SEED_DEMO_SCHOOLS=false にする。
+ *         デモ校を流し直すと、支払い後の契約が元の状態に戻るため（#79）
  *
  * 実行方法：
  *   docker compose exec backend pnpm prisma db seed
+ *   デモ校をスキップ：docker compose exec -e SEED_DEMO_SCHOOLS=false backend pnpm prisma db seed
  *   （ローカルで直接動かす場合は `pnpm prisma db seed`。DATABASE_URL の向き先に注意）
  */
 
@@ -237,10 +240,10 @@ type DemoSchool = {
 
 const DEMO_SCHOOLS: DemoSchool[] = [
   {
-    schoolCode: "DEMOTRIAL",
-    name: "デモ高等学校（無料体験中）",
+    schoolCode: "UEDA123",
+    name: "上田みらい高等学校",
     adminEmail: "demo-trial@example.com",
-    firebaseUid: "REPLACE_WITH_FIREBASE_UID_TRIAL",
+    firebaseUid: firebaseUidFor("SEED_FIREBASE_UID_TRIAL", "REPLACE_WITH_FIREBASE_UID_TRIAL"),
     contract: {
       status: "trial",
       trialEndsAt: daysFromNow(18),
@@ -252,9 +255,9 @@ const DEMO_SCHOOLS: DemoSchool[] = [
   },
   {
     schoolCode: "DEMOEXPIRED",
-    name: "デモ高等学校（無料体験終了）",
+    name: "上田みらい高等学校",
     adminEmail: "demo-expired@example.com",
-    firebaseUid: "REPLACE_WITH_FIREBASE_UID_EXPIRED",
+    firebaseUid: firebaseUidFor("SEED_FIREBASE_UID_EXPIRED", "REPLACE_WITH_FIREBASE_UID_EXPIRED"),
     contract: {
       status: "trial",
       trialEndsAt: daysFromNow(-5),
@@ -266,9 +269,9 @@ const DEMO_SCHOOLS: DemoSchool[] = [
   },
   {
     schoolCode: "DEMOACTIVE",
-    name: "デモ高等学校（契約中）",
+    name: "上田みらい高等学校",
     adminEmail: "demo-active@example.com",
-    firebaseUid: "REPLACE_WITH_FIREBASE_UID_ACTIVE",
+    firebaseUid: firebaseUidFor("SEED_FIREBASE_UID_ACTIVE", "REPLACE_WITH_FIREBASE_UID_ACTIVE"),
     contract: {
       status: "active",
       trialEndsAt: daysFromNow(-60),
@@ -280,9 +283,9 @@ const DEMO_SCHOOLS: DemoSchool[] = [
   },
   {
     schoolCode: "DEMORENEW",
-    name: "デモ高等学校（契約期限切れ）",
+    name: "上田みらい高等学校",
     adminEmail: "demo-renew@example.com",
-    firebaseUid: "REPLACE_WITH_FIREBASE_UID_RENEW",
+    firebaseUid: firebaseUidFor("SEED_FIREBASE_UID_RENEW", "REPLACE_WITH_FIREBASE_UID_RENEW"),
     contract: {
       status: "active",
       trialEndsAt: daysFromNow(-430),
@@ -293,6 +296,15 @@ const DEMO_SCHOOLS: DemoSchool[] = [
     },
   },
 ];
+
+/**
+ * デモ校の管理者の Firebase UID（#79）。
+ * 本番では環境変数で本物の UID を渡す（最初から本物の UID で作れば、あとで管理者が重複しない）。
+ * 指定がなければプレースホルダー（手元の開発用。ログインはできない）。
+ */
+function firebaseUidFor(envName: string, placeholder: string): string {
+  return process.env[envName] || placeholder;
+}
 
 function readJson<T>(fileName: string): T {
   const filePath = path.join(SEED_DATA_DIR, fileName);
@@ -517,32 +529,42 @@ async function main() {
   // ---- 3. デモ用の学校・学校管理者・契約 ----
   // 管理者の自己登録は廃止（#11で決定）。UI-A03の4状態（無料体験中／無料体験終了／
   // 契約中／契約期限切れ）を確認・デモできるよう、状態違いの学校を4件用意する。
-  await prisma.$transaction(async (tx) => {
-    for (const demo of DEMO_SCHOOLS) {
-      const school = await tx.school.upsert({
-        where: { schoolCode: demo.schoolCode },
-        create: { name: demo.name, schoolCode: demo.schoolCode },
-        update: { name: demo.name },
-      });
+  // 本番の2回目以降は SEED_DEMO_SCHOOLS=false で流す（管理者の重複・支払い後の契約の上書きを防ぐ。#79）
+  if (process.env.SEED_DEMO_SCHOOLS === "false") {
+    console.log("[seed] デモ校はスキップしました（SEED_DEMO_SCHOOLS=false）");
+  } else {
+    await prisma.$transaction(async (tx) => {
+      for (const demo of DEMO_SCHOOLS) {
+        const school = await tx.school.upsert({
+          where: { schoolCode: demo.schoolCode },
+          create: { name: demo.name, schoolCode: demo.schoolCode },
+          update: { name: demo.name },
+        });
 
-      await tx.schoolAdmin.upsert({
-        where: { firebaseUid: demo.firebaseUid },
-        create: { schoolId: school.id, firebaseUid: demo.firebaseUid, email: demo.adminEmail },
-        update: { schoolId: school.id, email: demo.adminEmail },
-      });
+        await tx.schoolAdmin.upsert({
+          where: { firebaseUid: demo.firebaseUid },
+          create: { schoolId: school.id, firebaseUid: demo.firebaseUid, email: demo.adminEmail },
+          update: { schoolId: school.id, email: demo.adminEmail },
+        });
 
-      await tx.contract.upsert({
-        where: { schoolId: school.id },
-        create: { schoolId: school.id, ...demo.contract },
-        update: { ...demo.contract },
-      });
+        await tx.contract.upsert({
+          where: { schoolId: school.id },
+          create: { schoolId: school.id, ...demo.contract },
+          update: { ...demo.contract },
+        });
+      }
+    });
+    console.log(`[seed] デモ校投入完了: schools=${DEMO_SCHOOLS.length}`);
+
+    // プレースホルダーの UID のままの学校だけ知らせる（その学校の管理画面にはログインできない）
+    const placeholders = DEMO_SCHOOLS.filter((d) => d.firebaseUid.startsWith("REPLACE_WITH_"));
+    if (placeholders.length > 0) {
+      console.log(
+        `[seed]  ⚠️ 管理者の firebase_uid がプレースホルダーのままです: ${placeholders.map((d) => d.schoolCode).join(", ")}` +
+          "（ログインを試すには、SEED_FIREBASE_UID_TRIAL などに Firebase の UID を入れて流し直してください）",
+      );
     }
-  });
-  console.log(`[seed] デモ校投入完了: schools=${DEMO_SCHOOLS.length}`);
-  console.log(
-    "[seed]  ⚠️ school_admins.firebase_uid はプレースホルダーのままです。" +
-      "ログイン確認には、Firebaseコンソールで対応アカウントを作成しUIDを書き換えてください。",
-  );
+  }
 
   console.log("[seed] 完了");
 }
