@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { logger } from "../config/logger.js";
 // AI 連携（強みの説明のみ）。#65
 // AI に送るのは強みの特性名と traits.description のみ（個人情報・職業マスタの文章は送らない）
 
@@ -36,6 +37,59 @@ export type StrengthForAi = {
 };
 
 /**
+ * AI の出力を使えなかった理由（#72）。ログに出して、どこを直せばよいかを数えられるようにする。
+ * 説明文そのものが理由のときは、どの強みの、どんな文だったかも持つ（生徒の情報は含まれない）。
+ */
+export type StrengthRejection = {
+  reason:
+    | "invalid_shape" // 形がちがう（強みの数・code がちがう、など）
+    | "too_short"
+    | "too_long"
+    | "forbidden_word" // 断定・進路の決めつけ・URL（FORBIDDEN_PATTERNS）
+    | "broken_text" // 「?」の連続・文字化け（BROKEN_PATTERNS）
+    | "no_period"; // 「。」で終わらない（途中で切れた文）
+  code?: string;
+  description?: string;
+};
+
+export type StrengthCheckResult =
+  { ok: true; descriptions: Map<string, string> } | { ok: false; rejection: StrengthRejection };
+
+/** AI の出力をチェックし、強みの code ごとの説明文か、使えなかった理由を返す */
+export function checkStrengthDescriptions(
+  output: unknown,
+  expectedCodes: string[],
+): StrengthCheckResult {
+  const invalidShape: StrengthCheckResult = { ok: false, rejection: { reason: "invalid_shape" } };
+  if (typeof output !== "object" || output === null) return invalidShape;
+  const strengths = (output as { strengths?: unknown }).strengths;
+  if (!Array.isArray(strengths) || strengths.length !== expectedCodes.length) return invalidShape;
+
+  const result = new Map<string, string>();
+  for (const item of strengths) {
+    if (typeof item !== "object" || item === null) return invalidShape;
+    const { code, description } = item as { code?: unknown; description?: unknown };
+    if (typeof code !== "string" || typeof description !== "string") return invalidShape;
+    if (!expectedCodes.includes(code) || result.has(code)) return invalidShape;
+
+    const text = description.trim();
+    const reject = (reason: StrengthRejection["reason"]): StrengthCheckResult => ({
+      ok: false,
+      rejection: { reason, code, description: text },
+    });
+    if (text.length < DESCRIPTION_MIN_LENGTH) return reject("too_short");
+    if (text.length > DESCRIPTION_MAX_LENGTH) return reject("too_long");
+    if (FORBIDDEN_PATTERNS.some((pattern) => pattern.test(text))) return reject("forbidden_word");
+    if (BROKEN_PATTERNS.some((pattern) => pattern.test(text))) return reject("broken_text");
+    // 途中で切れた文を弾く（#137）。語尾の言葉（「かも」など）は見ない
+    if (!text.endsWith("。")) return reject("no_period");
+
+    result.set(code, text);
+  }
+  return { ok: true, descriptions: result };
+}
+
+/**
  * AI の出力をチェックし、強みの code ごとの説明文を返す。
  * 1つでも条件を満たさなければ null（呼び出し側で固定文にフォールバックする）。
  */
@@ -43,27 +97,8 @@ export function validateStrengthDescriptions(
   output: unknown,
   expectedCodes: string[],
 ): Map<string, string> | null {
-  if (typeof output !== "object" || output === null) return null;
-  const strengths = (output as { strengths?: unknown }).strengths;
-  if (!Array.isArray(strengths) || strengths.length !== expectedCodes.length) return null;
-
-  const result = new Map<string, string>();
-  for (const item of strengths) {
-    if (typeof item !== "object" || item === null) return null;
-    const { code, description } = item as { code?: unknown; description?: unknown };
-    if (typeof code !== "string" || typeof description !== "string") return null;
-    if (!expectedCodes.includes(code) || result.has(code)) return null;
-
-    const text = description.trim();
-    if (text.length < DESCRIPTION_MIN_LENGTH || text.length > DESCRIPTION_MAX_LENGTH) return null;
-    if (FORBIDDEN_PATTERNS.some((pattern) => pattern.test(text))) return null;
-    if (BROKEN_PATTERNS.some((pattern) => pattern.test(text))) return null;
-    // 途中で切れた文を弾く（#137）。語尾の言葉（「かも」など）は見ない
-    if (!text.endsWith("。")) return null;
-
-    result.set(code, text);
-  }
-  return result;
+  const result = checkStrengthDescriptions(output, expectedCodes);
+  return result.ok ? result.descriptions : null;
 }
 
 /** OpenRouter の接続先（openai の SDK の接続先を向け直す。技術選定 §2） */
@@ -152,24 +187,73 @@ export const requestOpenRouter: AiRequester = async (strengths) => {
   return completion.choices[0]?.message?.content ?? null;
 };
 
+const AI_UNUSABLE_MESSAGE = "AI の強みの説明を使えませんでした";
+const LOG_TEXT_MAX_LENGTH = 200;
+
+/** ログに出す文字を短くし、キーらしい文字（sk-…）を伏せる。エラーの文にキーの一部が入ることがあるため */
+function toLogText(value: unknown): string {
+  return String(value)
+    .replace(/sk-[A-Za-z0-9_-]{6,}/g, "[REDACTED]")
+    .slice(0, LOG_TEXT_MAX_LENGTH);
+}
+
+/** AI の呼び出しそのものが失敗した理由。エラーをまるごと出さず、種類・文・HTTP の状態だけを出す */
+function describeRequestError(err: unknown) {
+  const name = err instanceof Error ? err.name : typeof err;
+  const message = err instanceof Error ? err.message : err;
+  const status = (err as { status?: unknown } | null)?.status;
+  return {
+    reason: /timed? ?out/i.test(`${name} ${String(message)}`) ? "timeout" : "request_failed",
+    errName: name,
+    errMessage: toLogText(message),
+    ...(typeof status === "number" ? { status } : {}),
+  };
+}
+
 /**
  * 強み3つの説明文を AI で作る。
  * 失敗・タイムアウト・出力が不正なときは null を返す（呼び出し側で固定文にフォールバックする。案A）。
+ * null にした理由は、ログに出す（#72）。reason で数えれば、どの理由が多いかが分かる。
  */
 export async function generateStrengthDescriptions(
   strengths: StrengthForAi[],
   request: AiRequester = requestOpenRouter,
 ): Promise<{ descriptions: Map<string, string>; model: string } | null> {
+  let content: string | null;
   try {
-    const content = await request(strengths);
-    if (!content) return null;
-
-    const descriptions = validateStrengthDescriptions(
-      JSON.parse(content),
-      strengths.map((s) => s.code),
-    );
-    return descriptions ? { descriptions, model: AI_MODEL } : null;
-  } catch {
+    content = await request(strengths);
+  } catch (err) {
+    logger.warn(describeRequestError(err), AI_UNUSABLE_MESSAGE);
     return null;
   }
+  if (!content) {
+    logger.warn({ reason: "empty_response" }, AI_UNUSABLE_MESSAGE);
+    return null;
+  }
+
+  let output: unknown;
+  try {
+    output = JSON.parse(content);
+  } catch {
+    logger.warn({ reason: "invalid_json", content: toLogText(content) }, AI_UNUSABLE_MESSAGE);
+    return null;
+  }
+
+  const result = checkStrengthDescriptions(
+    output,
+    strengths.map((s) => s.code),
+  );
+  if (!result.ok) {
+    const { reason, code, description } = result.rejection;
+    logger.warn(
+      {
+        reason,
+        ...(code ? { code } : {}),
+        ...(description !== undefined ? { description: toLogText(description) } : {}),
+      },
+      AI_UNUSABLE_MESSAGE,
+    );
+    return null;
+  }
+  return { descriptions: result.descriptions, model: AI_MODEL };
 }

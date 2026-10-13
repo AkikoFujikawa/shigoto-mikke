@@ -188,6 +188,30 @@ pnpm build      # ビルド
 ### ログ
 - `NODE_ENV=development`：debug、見やすい整形出力
 - `NODE_ENV=production`：info以上、JSON
+- ログは `pino` にそろえる（`console.error` などは使わない）。`Authorization`・`Stripe-Signature` のヘッダーは、自動で伏せる。
+
+#### ログの見方（障害の調査。#72）
+| 見たいもの | 見る場所 |
+| ---- | ---- |
+| 手元 | `docker compose logs --tail 100 backend` |
+| 本番（Render） | Render のダッシュボード → バックエンドのサービス → **Logs**（文字で検索できる） |
+
+| 起きたこと | 探す文 | 見る項目 |
+| ---- | ---- | ---- |
+| 想定外のエラー（500） | `unexpected error` | `err` |
+| 強みの説明が固定文になった | `AI の強みの説明を使えませんでした` | `reason`（下の表） |
+| Redis が使えない | `Redis に接続できません`／`Redis からキャッシュを取得できませんでした` | `errMessage`・`key` |
+| 管理者がログインできない | `Firebase ID トークンの検証に失敗しました`／`Firebase UID が school_admins に登録されていません` | `err` |
+| 決済が反映されない | `Stripe Webhook` | `eventId` |
+
+`reason`（AI の文を使えなかった理由）：
+
+| reason | 意味 |
+| ---- | ---- |
+| `timeout` | AI が時間内（15秒）に返さなかった |
+| `request_failed` | AI の呼び出しが失敗した（キーの未設定、回数の上限、AI 側の障害など。`errMessage`・`status` を見る） |
+| `empty_response`／`invalid_json`／`invalid_shape` | AI の返事が空、JSON ではない、決めた形ではない |
+| `too_short`／`too_long`／`forbidden_word`／`broken_text`／`no_period` | 説明文が検証を通らなかった（`code`・`description` に、どの強みの、どんな文かが出る） |
 
 ### データ・マスタ
 - 好きなものタグは**12種**（人と話す／ゲーム／健康・からだ／自然・環境／調べる・研究／絵・デザイン／ものづくり／動物／食べる・料理／宇宙・星／スポーツ／PC・IT）。追加・変更は全員に共有してから。

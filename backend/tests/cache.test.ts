@@ -1,10 +1,16 @@
 const mocks = vi.hoisted(() => ({
   redisGet: vi.fn(),
   redisSet: vi.fn(),
+  logWarn: vi.fn(),
 }));
 
 vi.mock("../src/lib/redis.js", () => ({
   redis: { get: mocks.redisGet, set: mocks.redisSet },
+}));
+
+// 失敗のログが、ほかと同じ pino（logger）で出ることを確かめる（#72）
+vi.mock("../src/config/logger.js", () => ({
+  logger: { info: vi.fn(), warn: mocks.logWarn, error: vi.fn() },
 }));
 
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -33,13 +39,26 @@ describe("getCached", () => {
     expect(mocks.redisGet).toHaveBeenCalledWith("master:job:7");
   });
 
-  it("Redis が失敗した場合は、例外を投げずに null を返す", async () => {
-    mocks.redisGet.mockRejectedValue(new Error("Redis down"));
+  it("Redis が失敗した場合は、例外を投げずに null を返し、キーつきでログに残す", async () => {
+    const err = new Error("Redis down");
+    mocks.redisGet.mockRejectedValue(err);
 
     const value = await getCached("master:job:7");
 
     expect(value).toBeNull();
     expect(mocks.redisGet).toHaveBeenCalledWith("master:job:7");
+    expect(mocks.logWarn).toHaveBeenCalledWith(
+      { err, key: "master:job:7" },
+      "Redis からキャッシュを取得できませんでした",
+    );
+  });
+
+  it("成功した場合は、ログを出さない", async () => {
+    mocks.redisGet.mockResolvedValue(null);
+
+    await getCached("master:job:7");
+
+    expect(mocks.logWarn).not.toHaveBeenCalled();
   });
 });
 
@@ -56,11 +75,16 @@ describe("setCached", () => {
     expect(mocks.redisSet).toHaveBeenCalledWith("master:job:7", '{"id":7}', "EX", 3600);
   });
 
-  it("Redis が失敗した場合は、例外を投げずに終わる", async () => {
-    mocks.redisSet.mockRejectedValue(new Error("Redis down"));
+  it("Redis が失敗した場合は、例外を投げずに終わり、キーつきでログに残す", async () => {
+    const err = new Error("Redis down");
+    mocks.redisSet.mockRejectedValue(err);
 
     await expect(setCached("master:job:7", { id: 7 }, 3600)).resolves.toBeUndefined();
 
     expect(mocks.redisSet).toHaveBeenCalled();
+    expect(mocks.logWarn).toHaveBeenCalledWith(
+      { err, key: "master:job:7" },
+      "Redis にキャッシュを保存できませんでした",
+    );
   });
 });

@@ -16,7 +16,13 @@ export const logger = pino({
         options: { colorize: true, translateTime: "HH:MM:ss" },
       },
   redact: {
-    paths: ["req.headers.authorization", "req.body.password", "req.body.token"],
+    // stripe-signature は、Webhook のリクエストもログに残るようになったため伏せる（#72）
+    paths: [
+      "req.headers.authorization",
+      'req.headers["stripe-signature"]',
+      "req.body.password",
+      "req.body.token",
+    ],
     censor: "[REDACTED]",
   },
 });
