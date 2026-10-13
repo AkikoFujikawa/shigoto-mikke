@@ -10,7 +10,7 @@
  *      → DB設計.md §6.2・§6.3 の確定値をそのままハードコード
  *   2. job_groups／academic_fields／jobs（＋ job_interests／job_traits／job_academic_fields）
  *      → prisma/seed-data/*.json から読み込み（xlsx 未確定のため、現在は空配列）
-  *   3. デモ用の学校／学校管理者／契約（4パターン：無料体験中・無料体験終了・契約中・契約期限切れ）
+ *   3. デモ用の学校／学校管理者／契約（4パターン：無料体験中・無料体験終了・契約中・契約期限切れ）
  *      → 管理者の自己登録は廃止（#11）。UI-A03 の表示確認・デモ用に、このseedで用意する
  *      → 学校名はすべて「上田みらい高等学校」（ワイヤーフレームと同じ）。学校コードで区別する（#79）
  *      → school_admins.firebase_uid は、環境変数 SEED_FIREBASE_UID_TRIAL／_EXPIRED／_ACTIVE／_RENEW で渡す。
