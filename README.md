@@ -72,7 +72,7 @@
 | AI | OpenRouter 経由（`openai/gpt-oss-120b`）＋ Structured Outputs | サーバーからのみ呼び出す。配布APIキー（コース共有・予算はスクール負担） |
 | 決済 | Stripe Checkout（テストモード）＋ Webhook | 独自決済画面は作らない |
 | コンテナ | Docker / Docker Compose | |
-| ホスティング | フロント：Vercel／API：Render（Docker）／DB：Neon／Redis：Render または Upstash | 本番はHTTPS |
+| ホスティング | フロント：Render（当初は Vercel の予定。スクールの private リポジトリが Vercel の無料プランで使えないため変更。#76）／API：Render（Docker）／DB：Neon／Redis：Render または Upstash | 本番はHTTPS |
 | CI/CD | GitHub Actions | lint・型・単体テスト |
 | テスト | Vitest ＋ Supertest（単体・API）。Playwright は**実施しない** | 生徒フローはテストシナリオ（手動・実機）で担保 |
 | ログ | pino（`NODE_ENV` で出力を切替） | |
