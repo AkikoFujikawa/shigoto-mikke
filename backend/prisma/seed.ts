@@ -216,6 +216,12 @@ const SEED_DATA_DIR = path.join(__dirname, "seed-data");
 // デモ用の学校・学校管理者・契約（#11：管理者の自己登録は廃止し、seedで用意する）
 // ─────────────────────────────
 
+/**
+ * seed のトランザクションの時間切れ（#79）。Prisma の既定は5秒だが、本番の Neon（シンガポール）は
+ * 1回の問い合わせに時間がかかり、職業の投入で5秒を超えて P2028 になったため、長めにする。
+ */
+const SEED_TRANSACTION_OPTIONS = { timeout: 120_000, maxWait: 10_000 };
+
 function daysFromNow(days: number): Date {
   const d = new Date();
   d.setUTCDate(d.getUTCDate() + days);
@@ -389,7 +395,7 @@ async function main() {
         },
       });
     }
-  });
+  }, SEED_TRANSACTION_OPTIONS);
   console.log(
     `[seed] 確定マスタ投入完了: interests=${INTERESTS.length} traits=${TRAITS.length} questions=${QUESTIONS.length} question_options=${QUESTION_OPTIONS.length}`,
   );
@@ -504,7 +510,7 @@ async function main() {
         data: academicFieldRows.map((f) => ({ jobId: job.id, academicFieldId: f.id })),
       });
     }
-  });
+  }, SEED_TRANSACTION_OPTIONS);
 
   console.log(
     `[seed] 未確定マスタ投入完了: job_groups=${jobGroups.length} academic_fields=${academicFields.length} jobs=${jobs.length}` +
@@ -553,7 +559,7 @@ async function main() {
           update: { ...demo.contract },
         });
       }
-    });
+    }, SEED_TRANSACTION_OPTIONS);
     console.log(`[seed] デモ校投入完了: schools=${DEMO_SCHOOLS.length}`);
 
     // プレースホルダーの UID のままの学校だけ知らせる（その学校の管理画面にはログインできない）
