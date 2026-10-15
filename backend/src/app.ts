@@ -18,6 +18,12 @@ import { schoolsRouter } from "./routes/schools.routes.js";
 export function createApp(): Express {
   const app = express();
 
+  // 本番（Render）では、アクセスが3段の中継役（Cloudflare → Render の中の2段）を通って届く。
+  // 後ろから3段だけを信じて、X-Forwarded-For から生徒の IP を読む（#77）。
+  // 信じないと全員が中継役の IP に見え、IP ごとのレート制限（rl:register）を全員で分け合ってしまう。
+  // 4段以上を信じると、生徒が X-Forwarded-For に書いたいつわりの IP を信じてしまう
+  app.set("trust proxy", 3);
+
   app.use(helmet());
   // CORS は FRONTEND_URL のみ許可（API設計 §1・§6）
   app.use(cors({ origin: env.frontendUrl }));
