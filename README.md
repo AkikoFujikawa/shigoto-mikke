@@ -72,7 +72,7 @@
 | AI | OpenRouter 経由（`openai/gpt-oss-120b`）＋ Structured Outputs | サーバーからのみ呼び出す。配布APIキー（コース共有・予算はスクール負担） |
 | 決済 | Stripe Checkout（テストモード）＋ Webhook | 独自決済画面は作らない |
 | コンテナ | Docker / Docker Compose | |
-| ホスティング | フロント：Vercel／API：Render（Docker）／DB：Neon／Redis：Render または Upstash | 本番はHTTPS |
+| ホスティング | フロント：Render（当初は Vercel の予定。スクールの private リポジトリが Vercel の無料プランで使えないため変更。#76）／API：Render（Docker）／DB：Neon／Redis：Render または Upstash | 本番はHTTPS |
 | CI/CD | GitHub Actions | lint・型・単体テスト |
 | テスト | Vitest ＋ Supertest（単体・API）。Playwright は**実施しない** | 生徒フローはテストシナリオ（手動・実機）で担保 |
 | ログ | pino（`NODE_ENV` で出力を切替） | |
@@ -306,7 +306,7 @@ pnpm build      # ビルド
 | 8 | 職業マスタの最終件数（現在39件。文言・画像の仕上げが間に合うか） | データ準備 | Week2 |
 | 9 | ~~質問2の特性の対応~~ **解決済み**（5問の設問と特性の対応を、各特性2回ずつに揃えて確定。`docs/plan/DB設計.md` §6.3） | マッチング | — |
 | 10 | ~~親向けの関わり方（結果共有）~~ 実施しないと決定 | — | — |
-| 11 | 講師への確認：フロント／バックの分離の範囲、ADVANCEDの評価範囲。~~フロントの本番もコンテナ必須か~~ **解決済み**（講師確認済み。フロントの本番は Vercel でコンテナ不要。開発は Compose に含める） | 構成全体 | Week1 |
+| 11 | 講師への確認：フロント／バックの分離の範囲、ADVANCEDの評価範囲。~~フロントの本番もコンテナ必須か~~ **解決済み**（講師確認済み。フロントの本番は Vercel でコンテナ不要（のちに Render に変更。#76）。開発は Compose に含める） | 構成全体 | Week1 |
 | 12 | ~~有料プランの内容~~ **解決済み**（一括払い・1校あたり50,000円（税込）・1年間有効。契約期限切れでも生徒の利用は制限しない。#24） | 決済実装 | — |
 
 ---
