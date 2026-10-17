@@ -21,7 +21,8 @@ export function createApp(): Express {
   // 本番（Render）では、アクセスが3段の中継役（Cloudflare → Render の中の2段）を通って届く。
   // 後ろから3段だけを信じて、X-Forwarded-For から生徒の IP を読む（#77）。
   // 信じないと全員が中継役の IP に見え、IP ごとのレート制限（rl:register）を全員で分け合ってしまう。
-  // 4段以上を信じると、生徒が X-Forwarded-For に書いたいつわりの IP を信じてしまう
+  // 4段以上を信じると、生徒が X-Forwarded-For に書いたいつわりの IP を信じてしまう。
+  // Render の構成が変わって段数が変わったら、本番のログの x-forwarded-for の個数で数え直す
   app.set("trust proxy", 3);
 
   app.use(helmet());
