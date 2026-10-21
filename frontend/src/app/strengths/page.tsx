@@ -100,8 +100,8 @@ export default function StrengthsPage() {
             height={128}
           />
 
-          <p className="relative mx-auto -mt-2 w-[200px] shrink-0 rounded-2xl border-2 border-brand bg-white px-4 py-4 text-center text-sm leading-7 text-navy">
-            あなたの今の強みのタネ
+          <p className="relative mx-auto -mt-2 w-full max-w-[200px] min-w-0 rounded-2xl border-2 border-brand bg-white px-4 py-4 text-center text-sm leading-7 text-navy">
+            あなたの今の<span className="whitespace-nowrap">強みのタネ</span>
             <br />
             を見つけました。
             <br />
