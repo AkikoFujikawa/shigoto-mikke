@@ -119,7 +119,7 @@ export default function InterestsPage() {
           </div>
 
           {/* カード */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {(Array.isArray(interests) ? interests : []).map((interest) => {
               const isSelected = selected.includes(interest.id);
 
