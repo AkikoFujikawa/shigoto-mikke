@@ -114,7 +114,7 @@ export default function HomePage() {
                     value={schoolCode}
                     onChange={(event) => setSchoolCode(event.target.value)}
                   />
-                  <p className="mt-xs text-sm text-gray-500">
+                  <p className="mt-sm text-sm text-gray-500">
                     学校から案内されたコードを入力してね。
                   </p>
                   {schoolCodeError && (
@@ -129,7 +129,7 @@ export default function HomePage() {
                     value={nickname}
                     onChange={(event) => setNickname(event.target.value)}
                   />
-                  <p className="mt-xs text-sm text-gray-500">
+                  <p className="mt-sm text-sm text-gray-500">
                     本名じゃなくてOK。ほかの人には見えません。
                   </p>
                   {nicknameError && <p className="mt-xs text-sm text-red-600">{nicknameError}</p>}

@@ -105,8 +105,8 @@ export default function InterestsPage() {
               height={64}
               className="absolute right-0 top-12 h-16 w-auto"
             />
-            <h1 className="text-xl font-bold leading-relaxed text-gray-900">
-              好き・気になるものを
+            <h1 className="px-16 text-xl font-bold leading-relaxed text-gray-900">
+              好き・<span className="whitespace-nowrap">気になるものを</span>
               <br />
               選んでね！✨
             </h1>
@@ -119,7 +119,7 @@ export default function InterestsPage() {
           </div>
 
           {/* カード */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {(Array.isArray(interests) ? interests : []).map((interest) => {
               const isSelected = selected.includes(interest.id);
 

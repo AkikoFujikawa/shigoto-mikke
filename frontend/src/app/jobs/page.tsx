@@ -96,8 +96,8 @@ export default function JobsPage() {
 
   return (
     <main className="flex h-[100dvh] flex-col bg-background">
-      <h1 className="shrink-0 px-5 py-4 text-center text-lg font-bold text-navy">
-        あなたにつながる仕事を見つけてみよう✨
+      <h1 className="shrink-0 px-5 pt-6 pb-4 text-center text-lg font-bold text-navy">
+        あなたにつながる仕事を<span className="whitespace-nowrap">見つけてみよう✨</span>
       </h1>
       <div
         ref={listRef}
@@ -107,9 +107,9 @@ export default function JobsPage() {
         {jobs.map((job, index) => (
           <section
             key={job.id}
-            className="flex h-full snap-start snap-always flex-col gap-3 px-5 pb-4"
+            className="flex h-full snap-start snap-always flex-col gap-4 px-5 pb-6"
           >
-            <div className="flex min-h-0 flex-1 flex-col gap-3 rounded-2xl bg-white p-4 shadow-card">
+            <div className="flex min-h-0 flex-1 flex-col gap-3 rounded-2xl bg-white p-5 shadow-card">
               <JobImage name={job.name} imageUrl={job.imageUrl} emoji={job.emoji} />
               <h2 className="text-xl font-bold text-navy">{job.name}</h2>
               <p className="text-base leading-7 text-navy">{job.summary}</p>

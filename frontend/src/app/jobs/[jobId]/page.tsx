@@ -78,7 +78,7 @@ export default function JobDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background px-5 py-4">
+    <main className="min-h-screen bg-background px-5 py-6">
       <div className="mx-auto w-full max-w-md">
         <button
           type="button"
