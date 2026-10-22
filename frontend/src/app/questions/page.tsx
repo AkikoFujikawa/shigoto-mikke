@@ -300,7 +300,7 @@ export default function QuestionsPage() {
           </div>
         </div>
 
-        <h2 className="text-xl font-bold text-navy text-center">{question?.text}</h2>
+        <h2 className="mt-4 text-xl font-bold text-navy text-center">{question?.text}</h2>
         <div className="grid grid-cols-1 gap-4 mt-5">
           {question?.options.map((option) => (
             <button
@@ -333,7 +333,7 @@ export default function QuestionsPage() {
 
         <button
           type="button"
-          className="mt-3 w-full rounded-full bg-brand px-6 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="mt-4 w-full rounded-full bg-brand px-6 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
           disabled={!question || answers[question.id] === undefined || diagnosisLoading}
           onClick={() => {
             if (currentQuestion < questions.length - 1) {

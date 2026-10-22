@@ -39,12 +39,12 @@ export default function SchoolCodeCard({ schoolCode, onNotify }: SchoolCodeCardP
   return (
     <Card>
       <h2 className="text-sm text-gray-600">🎓 生徒用 学校コード</h2>
-      <div className="mt-sm flex items-center justify-between gap-md rounded-md border border-brand/20 bg-brand/5 px-md py-sm">
+      <div className="mt-sm flex flex-wrap items-center justify-between gap-md rounded-md border border-brand/20 bg-brand/5 px-md py-sm">
         <p className="select-all text-2xl font-bold tracking-widest text-navy">{schoolCode}</p>
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex min-h-[44px] items-center gap-xs rounded-lg border border-brand bg-white px-md py-sm font-semibold text-brand"
+          className="inline-flex min-h-[44px] shrink-0 items-center gap-xs whitespace-nowrap rounded-lg border border-brand bg-white px-md py-sm font-semibold text-brand"
         >
           <CopyIcon />
           コピー
