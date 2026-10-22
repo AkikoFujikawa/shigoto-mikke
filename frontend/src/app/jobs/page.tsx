@@ -96,7 +96,7 @@ export default function JobsPage() {
 
   return (
     <main className="flex h-[100dvh] flex-col bg-background">
-      <h1 className="shrink-0 px-5 pt-6 py-4 text-center text-lg font-bold text-navy">
+      <h1 className="shrink-0 px-5 pt-6 pb-4 text-center text-lg font-bold text-navy">
         あなたにつながる仕事を<span className="whitespace-nowrap">見つけてみよう✨</span>
       </h1>
       <div
