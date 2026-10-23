@@ -105,38 +105,37 @@ export default function JobsPage() {
         className="mx-auto min-h-0 w-full max-w-md flex-1 snap-y snap-mandatory overflow-y-auto"
       >
         {jobs.map((job, index) => (
-          <section
-            key={job.id}
-            className="flex h-full snap-start snap-always flex-col gap-4 px-5 pb-6"
-          >
-            <div className="flex min-h-0 flex-1 flex-col gap-3 rounded-2xl bg-white p-5 shadow-card">
-              <JobImage name={job.name} imageUrl={job.imageUrl} emoji={job.emoji} />
-              <h2 className="text-xl font-bold text-navy">{job.name}</h2>
-              <p className="text-base leading-7 text-navy">{job.summary}</p>
-              <div className="flex flex-wrap gap-2">
-                {job.interestTags.map((tag) => (
-                  <Tag key={tag}>#{tag}</Tag>
-                ))}
+          <section key={job.id} className="flex h-full snap-start snap-always flex-col px-5 pb-6">
+            <div className="my-auto flex flex-col gap-4">
+              <div className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-card">
+                <JobImage name={job.name} imageUrl={job.imageUrl} emoji={job.emoji} />
+                <h2 className="text-xl font-bold text-navy">{job.name}</h2>
+                <p className="text-base leading-7 text-navy">{job.summary}</p>
+                <div className="flex flex-wrap gap-2">
+                  {job.interestTags.map((tag) => (
+                    <Tag key={tag}>#{tag}</Tag>
+                  ))}
+                </div>
               </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                window.location.href = `/jobs/${job.id}`;
-              }}
-              className="min-h-[48px] w-full rounded-full bg-brand px-6 py-3 font-bold text-white"
-            >
-              詳しく見る →
-            </button>
-            {index < jobs.length - 1 && (
               <button
                 type="button"
-                onClick={scrollToNext}
-                className="min-h-[48px] w-full rounded-full border border-brand bg-white px-6 py-3 font-bold text-brand"
+                onClick={() => {
+                  window.location.href = `/jobs/${job.id}`;
+                }}
+                className="min-h-[48px] w-full rounded-full bg-brand px-6 py-3 font-bold text-white"
               >
-                次の仕事を見る ↓
+                詳しく見る →
               </button>
-            )}
+              {index < jobs.length - 1 && (
+                <button
+                  type="button"
+                  onClick={scrollToNext}
+                  className="min-h-[48px] w-full rounded-full border border-brand bg-white px-6 py-3 font-bold text-brand"
+                >
+                  次の仕事を見る ↓
+                </button>
+              )}
+            </div>
           </section>
         ))}
       </div>

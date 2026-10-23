@@ -12,7 +12,7 @@ export default function JobImage({ name, imageUrl, emoji }: JobImageProps) {
   const [failed, setFailed] = useState(false);
 
   return (
-    <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-xl bg-brand/10">
+    <div className="relative flex aspect-[1200/630] w-full items-center justify-center overflow-hidden rounded-xl bg-brand/10">
       {imageUrl && !failed ? (
         <Image
           src={imageUrl}
