@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Button from "@/components/Button";
+import IconBadge from "@/components/IconBadge";
 import PageShell from "@/components/PageShell";
+import { interestIconSrc } from "@/lib/icons";
 
 type Interest = {
   id: number;
@@ -138,7 +140,9 @@ export default function InterestsPage() {
                     </span>
                   )}
 
-                  <div className="mb-2 text-3xl">{interest.emoji}</div>
+                  <div className="mb-2 flex justify-center">
+                    <IconBadge emoji={interest.emoji} imageSrc={interestIconSrc(interest.code)} />
+                  </div>
 
                   <div className="text-base font-semibold text-gray-800">{interest.label}</div>
                 </button>

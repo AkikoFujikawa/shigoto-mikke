@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
+import IconBadge from "@/components/IconBadge";
+import { optionIconSrc } from "@/lib/icons";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -317,7 +319,7 @@ export default function QuestionsPage() {
               }}
             >
               <span className="flex flex-row items-center justify-start gap-4 text-base">
-                <span className="text-3xl">{option.emoji}</span>
+                <IconBadge emoji={option.emoji} imageSrc={optionIconSrc(option.id)} />
                 <span className="flex-1 text-left">{option.label}</span>
                 {answers[question.id] === option.id && (
                   <span className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">

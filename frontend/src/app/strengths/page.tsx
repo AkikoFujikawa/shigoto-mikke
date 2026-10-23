@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import LoadingState from "@/components/LoadingState";
+import IconBadge from "@/components/IconBadge";
+import { strengthIconSrc } from "@/lib/icons";
 
 type Strength = {
   code: string;
@@ -122,7 +124,10 @@ export default function StrengthsPage() {
                 className="rounded-2xl border border-gray-200 bg-white p-5 shadow-card"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-3xl">{strengthEmojis[strength.code] ?? "🌱"}</span>
+                  <IconBadge
+                    emoji={strengthEmojis[strength.code] ?? "🌱"}
+                    imageSrc={strengthIconSrc(strength.code)}
+                  />
 
                   <h2 className="text-lg font-bold text-navy">{strength.title}</h2>
                 </div>
