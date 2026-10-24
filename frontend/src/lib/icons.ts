@@ -4,13 +4,26 @@
 // ファイル名：strength-{強みの code}.webp／interest-{好きなことの code}.webp／option-{選択肢の id}.webp
 
 /** 画像がある強みの code */
-const STRENGTH_ICONS = new Set<string>([]);
+const STRENGTH_ICONS = new Set<string>(["explore", "ideate", "express", "support", "craft"]);
 
 /** 画像がある好きなことの code */
-const INTEREST_ICONS = new Set<string>([]);
+const INTEREST_ICONS = new Set<string>([
+  "talk",
+  "game",
+  "health",
+  "nature",
+  "research",
+  "art",
+  "making",
+  "animal",
+  "food",
+  "space",
+  "sports",
+  "it",
+]);
 
 /** 画像がある質問の選択肢の id */
-const OPTION_ICONS = new Set<number>([]);
+const OPTION_ICONS = new Set<number>([11, 12, 21, 22, 31, 32, 41, 42, 51, 52]);
 
 export function strengthIconSrc(code: string): string | null {
   return STRENGTH_ICONS.has(code) ? `/icons/strength-${code}.webp` : null;
