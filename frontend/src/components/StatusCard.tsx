@@ -49,7 +49,7 @@ type StatusCardProps = ApplyProps & {
 export default function StatusCard({ contract, ...apply }: StatusCardProps) {
   return (
     <Card>
-      <h2 className="text-sm text-gray-600">📄 ご利用状況</h2>
+      <h2 className="text-sm text-gray-600">ご利用状況</h2>
       <div className="mt-sm">
         {contract.status === "trial" && (
           <>
@@ -76,7 +76,11 @@ export default function StatusCard({ contract, ...apply }: StatusCardProps) {
         {contract.status === "active" && (
           <>
             <Badge className="bg-green-100 text-green-900">
-              <span aria-hidden="true">🟢 </span>契約中
+              <span
+                aria-hidden="true"
+                className="mr-1.5 inline-block h-2 w-2 rounded-full bg-green-500"
+              />
+              契約中
             </Badge>
             <p className="mt-sm text-base text-navy">現在、有料プランをご利用中です。</p>
             <p className="mt-xs text-sm text-gray-600">
