@@ -5,6 +5,7 @@ import ErrorState from "@/components/ErrorState";
 import JobImage from "@/components/JobImage";
 import LoadingState from "@/components/LoadingState";
 import Tag from "@/components/Tag";
+import AppLogo from "@/components/AppLogo";
 
 type Academic = {
   name: string;
@@ -80,13 +81,9 @@ export default function JobDetailPage() {
   return (
     <main className="min-h-screen bg-background px-5 py-6">
       <div className="mx-auto w-full max-w-md">
-        <button
-          type="button"
-          onClick={goBack}
-          className="min-h-[44px] px-2 font-semibold text-navy"
-        >
-          ＜ 戻る
-        </button>
+        <div className="flex min-h-[44px] items-center">
+          <AppLogo />
+        </div>
 
         <header className="mt-2 space-y-3">
           <JobImage name={job.name} imageUrl={job.imageUrl} />
@@ -129,7 +126,7 @@ export default function JobDetailPage() {
           onClick={goBack}
           className="mt-6 min-h-[48px] w-full rounded-full bg-brand px-6 py-3 font-bold text-white"
         >
-          職業をもっと見る →
+          職業一覧に戻る
         </button>
       </div>
     </main>
