@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import AppLogo from "@/components/AppLogo";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Input from "@/components/Input";
@@ -108,7 +109,9 @@ export default function AdminLoginPage() {
     <PageShell>
       <div className="flex flex-col gap-md">
         <div className="pt-lg text-center">
-          <h1 className="text-3xl font-bold text-brand">しごとみっけ🔎</h1>
+          <h1>
+            <AppLogo size="lg" />
+          </h1>
           <p className="mt-sm text-sm text-gray-600">高校生の、まだ知らない未来を見つける</p>
         </div>
 

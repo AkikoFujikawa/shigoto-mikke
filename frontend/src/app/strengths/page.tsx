@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import AppLogo from "@/components/AppLogo";
 import LoadingState from "@/components/LoadingState";
 import IconBadge from "@/components/IconBadge";
 import { strengthIconSrc } from "@/lib/icons";
@@ -80,7 +81,7 @@ export default function StrengthsPage() {
         style={{ backgroundImage: "url('/backgrounds/S01.png')" }}
       >
         <header className="mb-8 flex items-center justify-between">
-          <div className="text-xl font-bold text-brand">しごとみっけ🔎</div>
+          <AppLogo />
           <button
             type="button"
             onClick={() => {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Input from "@/components/Input";
+import AppLogo from "@/components/AppLogo";
 import PageShell from "@/components/PageShell";
 import Image from "next/image";
 
@@ -87,7 +88,9 @@ export default function HomePage() {
         <div className="flex flex-col gap-md">
           {/* ロゴ・キャッチコピー */}
           <div className="pt-lg text-center">
-            <h1 className="text-3xl font-bold text-brand"> しごとみっけ🔎 </h1>
+            <h1>
+              <AppLogo size="lg" />
+            </h1>
             <p className="mt-sm text-sm text-gray-600">好きから見つかる、まだ知らない未来。</p>
           </div>
 
