@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AppLogo from "@/components/AppLogo";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
 import IconBadge from "@/components/IconBadge";
@@ -246,7 +247,9 @@ export default function QuestionsPage() {
     <main className="min-h-screen bg-background px-5 py-6">
       <div className="mx-auto flex w-full max-w-md flex-col">
         <header className="mb-2 flex items-center justify-between">
-          <h1 className="text-xl font-extrabold tracking-wider text-brand">しごとみっけ🔎</h1>
+          <h1>
+            <AppLogo />
+          </h1>
 
           <button
             type="button"

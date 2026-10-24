@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import AppLogo from "@/components/AppLogo";
 import Button from "@/components/Button";
 import IconBadge from "@/components/IconBadge";
 import PageShell from "@/components/PageShell";
@@ -84,7 +85,7 @@ export default function InterestsPage() {
         <div className="relative z-10">
           {/* ヘッダー */}
           <header className="mb-2 flex items-center justify-between">
-            <div className="text-xl font-bold text-brand">しごとみっけ🔎</div>
+            <AppLogo />
 
             <button
               type="button"
