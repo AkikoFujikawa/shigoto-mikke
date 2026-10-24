@@ -4,6 +4,7 @@ import ErrorState from "@/components/ErrorState";
 import JobImage from "@/components/JobImage";
 import LoadingState from "@/components/LoadingState";
 import Tag from "@/components/Tag";
+import AppLogo from "@/components/AppLogo";
 
 type Job = {
   id: number;
@@ -96,7 +97,20 @@ export default function JobsPage() {
 
   return (
     <main className="flex h-[100dvh] flex-col bg-background">
-      <h1 className="shrink-0 px-5 pt-6 pb-4 text-center text-lg font-bold text-navy">
+      <header className="mx-auto flex w-full max-w-md shrink-0 items-center justify-between px-5 pt-6 [@media(max-height:600px)]:pt-2">
+        <AppLogo />
+        <button
+          type="button"
+          onClick={() => {
+            sessionStorage.removeItem("studentToken");
+            window.location.href = "/";
+          }}
+          className="min-h-[44px] px-2 font-semibold text-gray-700"
+        >
+          おわる
+        </button>
+      </header>
+      <h1 className="shrink-0 px-5 pt-6 pb-4 text-center text-lg font-bold text-navy [@media(max-height:600px)]:pt-0 [@media(max-height:600px)]:pb-2">
         あなたにつながる仕事を<span className="whitespace-nowrap">見つけてみよう✨</span>
       </h1>
       <div
@@ -105,7 +119,10 @@ export default function JobsPage() {
         className="mx-auto min-h-0 w-full max-w-md flex-1 snap-y snap-mandatory overflow-y-auto"
       >
         {jobs.map((job, index) => (
-          <section key={job.id} className="flex h-full snap-start snap-always flex-col px-5 pb-6">
+          <section
+            key={job.id}
+            className="flex min-h-full snap-start snap-always flex-col px-5 pb-6"
+          >
             <div className="my-auto flex flex-col gap-4">
               <div className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-card">
                 <JobImage name={job.name} imageUrl={job.imageUrl} emoji={job.emoji} />

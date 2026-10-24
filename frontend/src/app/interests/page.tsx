@@ -5,7 +5,6 @@ import Image from "next/image";
 import AppLogo from "@/components/AppLogo";
 import Button from "@/components/Button";
 import IconBadge from "@/components/IconBadge";
-import PageShell from "@/components/PageShell";
 import { interestIconSrc } from "@/lib/icons";
 
 type Interest = {
@@ -76,102 +75,104 @@ export default function InterestsPage() {
   };
 
   return (
-    <PageShell>
-      <div
-        className="relative -mx-md min-h-screen bg-cover bg-center bg-no-repeat px-md pb-28"
-        style={{ backgroundImage: "url('/backgrounds/S01.png')" }}
-      >
-        <div className="absolute inset-0 z-0 bg-white/20" />
-        <div className="relative z-10">
-          {/* ヘッダー */}
-          <header className="mb-2 flex items-center justify-between">
-            <AppLogo />
+    <main
+      className="relative min-h-screen bg-background bg-cover bg-center bg-no-repeat px-5 py-lg"
+      style={{ backgroundImage: "url('/backgrounds/S01.png')" }}
+    >
+      <div className="absolute inset-0 z-0 bg-white/20" />
+      <div className="mx-auto w-full max-w-md">
+        <div className="relative -mx-md min-h-screen px-md pb-28">
+          <div className="relative z-10">
+            {/* ヘッダー */}
+            <header className="mb-2 flex items-center justify-between">
+              <AppLogo />
 
-            <button
-              type="button"
-              onClick={() => {
-                sessionStorage.removeItem("studentToken");
-                window.location.href = "/";
-              }}
-              className="min-h-[44px] px-2 font-semibold text-gray-700"
-            >
-              おわる
-            </button>
-          </header>
+              <button
+                type="button"
+                onClick={() => {
+                  sessionStorage.removeItem("studentToken");
+                  window.location.href = "/";
+                }}
+                className="min-h-[44px] px-2 font-semibold text-gray-700"
+              >
+                おわる
+              </button>
+            </header>
 
-          {/* タイトル */}
-          <div className="mb-2 text-center">
-            <Image
-              src="/characters/tanecchi/S03.png"
-              alt="たねっち"
-              width={64}
-              height={64}
-              className="absolute right-0 top-12 h-16 w-auto"
-            />
-            <h1 className="px-16 text-xl font-bold leading-relaxed text-gray-900">
-              好き・<span className="whitespace-nowrap">気になるものを</span>
-              <br />
-              選んでね！✨
-            </h1>
+            {/* タイトル */}
+            <div className="mb-2 text-center">
+              <Image
+                src="/characters/tanecchi/S03.png"
+                alt="たねっち"
+                width={64}
+                height={64}
+                className="absolute right-0 top-12 h-16 w-auto"
+              />
+              <h1 className="px-16 text-xl font-bold leading-relaxed text-gray-900">
+                好き・<span className="whitespace-nowrap">気になるものを</span>
+                <br />
+                選んでね！✨
+              </h1>
 
-            <p className="mt-2 text-base text-gray-600">
-              「ちょっと気になる」でもOK！
-              <br />
-              1〜3個選べます
-            </p>
-          </div>
+              <p className="mt-2 text-base text-gray-600">
+                「ちょっと気になる」でもOK！
+                <br />
+                1〜3個選べます
+              </p>
+            </div>
 
-          {/* カード */}
-          <div className="grid grid-cols-2 gap-3">
-            {(Array.isArray(interests) ? interests : []).map((interest) => {
-              const isSelected = selected.includes(interest.id);
+            {/* カード */}
+            <div className="grid grid-cols-2 gap-3">
+              {(Array.isArray(interests) ? interests : []).map((interest) => {
+                const isSelected = selected.includes(interest.id);
 
-              return (
-                <button
-                  key={interest.id}
-                  type="button"
-                  onClick={() => handleSelect(interest.id)}
-                  className={`relative min-h-[88px] rounded-2xl border-2 p-2 transition ${
-                    isSelected ? "border-brand bg-[#F1EFFF]" : "border-gray-200 bg-white"
-                  }`}
-                >
-                  {isSelected && (
-                    <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-brand text-sm text-white">
-                      ✓
-                    </span>
-                  )}
+                return (
+                  <button
+                    key={interest.id}
+                    type="button"
+                    onClick={() => handleSelect(interest.id)}
+                    className={`relative min-h-[88px] rounded-2xl border-2 p-2 transition ${
+                      isSelected ? "border-brand bg-[#F1EFFF]" : "border-gray-200 bg-white"
+                    }`}
+                  >
+                    {isSelected && (
+                      <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-brand text-sm text-white">
+                        ✓
+                      </span>
+                    )}
 
-                  <div className="mb-2 flex justify-center">
-                    <IconBadge emoji={interest.emoji} imageSrc={interestIconSrc(interest.code)} />
-                  </div>
+                    <div className="mb-2 flex justify-center">
+                      <IconBadge emoji={interest.emoji} imageSrc={interestIconSrc(interest.code)} />
+                    </div>
 
-                  <div className="text-base font-semibold text-gray-800">{interest.label}</div>
-                </button>
-              );
-            })}
-          </div>
+                    <div className="text-base font-semibold text-gray-800">{interest.label}</div>
+                  </button>
+                );
+              })}
+            </div>
 
-          {/* 選択数 */}
-          <div className="mt-5 text-center">
-            <p className="text-base font-semibold text-gray-700">選択中 {selected.length} / 3</p>
+            {/* 選択数 */}
+            <div className="mt-5 text-center">
+              <p className="text-base font-semibold text-gray-700">選択中 {selected.length} / 3</p>
 
-            {message && <p className="mt-1 text-sm font-semibold text-red-500">{message}</p>}
-          </div>
+              {message && <p className="mt-1 text-sm font-semibold text-red-500">{message}</p>}
+            </div>
 
-          {/* 次へ */}
-          <div className="mt-5">
-            <Button
-              disabled={selected.length === 0}
-              onClick={() => {
-                sessionStorage.setItem("selectedInterestIds", JSON.stringify(selected));
-                window.location.href = "/questions";
-              }}
-            >
-              次へ →
-            </Button>
+            {/* 次へ */}
+            <div className="mt-5">
+              <Button
+                disabled={selected.length === 0}
+                onClick={() => {
+                  sessionStorage.setItem("selectedInterestIds", JSON.stringify(selected));
+                  window.location.href = "/questions";
+                }}
+              >
+                次へ →
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-    </PageShell>
+    </main>
   );
 }

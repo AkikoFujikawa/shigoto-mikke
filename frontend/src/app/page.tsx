@@ -6,7 +6,6 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Input from "@/components/Input";
 import AppLogo from "@/components/AppLogo";
-import PageShell from "@/components/PageShell";
 import Image from "next/image";
 
 export default function HomePage() {
@@ -80,72 +79,74 @@ export default function HomePage() {
   };
 
   return (
-    <PageShell>
-      <div
-        className="min-h-screen bg-bottom bg-no-repeat bg-cover "
-        style={{ backgroundImage: "url('/backgrounds/S01.png')" }}
-      >
-        <div className="flex flex-col gap-md">
-          {/* ロゴ・キャッチコピー */}
-          <div className="pt-lg text-center">
-            <h1>
-              <AppLogo size="lg" />
-            </h1>
-            <p className="mt-sm text-sm text-gray-600">好きから見つかる、まだ知らない未来。</p>
-          </div>
+    <main
+      className="min-h-screen bg-background bg-cover bg-bottom bg-no-repeat px-5 py-lg"
+      style={{ backgroundImage: "url('/backgrounds/S01.png')" }}
+    >
+      <div className="mx-auto w-full max-w-md">
+        <div className="min-h-screen">
+          <div className="flex flex-col gap-md">
+            {/* ロゴ・キャッチコピー */}
+            <div className="pt-lg text-center">
+              <h1>
+                <AppLogo size="lg" />
+              </h1>
+              <p className="mt-sm text-sm text-gray-600">好きから見つかる、まだ知らない未来。</p>
+            </div>
 
-          <div className="relative z-0 mb-16 flex justify-center translate-y-20">
-            <Image
-              src="/characters/tanecchi/peek_S01.png"
-              alt="たねっち"
-              width={144}
-              height={144}
-              className="w-36 h-auto"
-            />
-          </div>
+            <div className="relative z-0 mb-16 flex justify-center translate-y-20">
+              <Image
+                src="/characters/tanecchi/peek_S01.png"
+                alt="たねっち"
+                width={144}
+                height={144}
+                className="w-36 h-auto"
+              />
+            </div>
 
-          {/* 入力カード */}
-          <div className="relative z-10 mx-auto w-[88%]">
-            <Card>
-              <div className="flex flex-col gap-lg pt-4">
-                <h2 className="text-center text-xl font-bold text-navy">はじめよう</h2>
+            {/* 入力カード */}
+            <div className="relative z-10 mx-auto w-[88%]">
+              <Card>
+                <div className="flex flex-col gap-lg pt-4">
+                  <h2 className="text-center text-xl font-bold text-navy">はじめよう</h2>
 
-                <div>
-                  <Input
-                    label="学校コード"
-                    placeholder="例：ABC123"
-                    value={schoolCode}
-                    onChange={(event) => setSchoolCode(event.target.value)}
-                  />
-                  <p className="mt-sm text-sm text-gray-500">
-                    学校から案内されたコードを入力してね。
-                  </p>
-                  {schoolCodeError && (
-                    <p className="mt-xs text-sm text-red-600">{schoolCodeError}</p>
-                  )}
+                  <div>
+                    <Input
+                      label="学校コード"
+                      placeholder="例：ABC123"
+                      value={schoolCode}
+                      onChange={(event) => setSchoolCode(event.target.value)}
+                    />
+                    <p className="mt-sm text-sm text-gray-500">
+                      学校から案内されたコードを入力してね。
+                    </p>
+                    {schoolCodeError && (
+                      <p className="mt-xs text-sm text-red-600">{schoolCodeError}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Input
+                      label="ニックネーム"
+                      placeholder="例：みさき"
+                      value={nickname}
+                      onChange={(event) => setNickname(event.target.value)}
+                    />
+                    <p className="mt-sm text-sm text-gray-500">
+                      本名じゃなくてOK。ほかの人には見えません。
+                    </p>
+                    {nicknameError && <p className="mt-xs text-sm text-red-600">{nicknameError}</p>}
+                  </div>
+
+                  <Button onClick={handleStart} disabled={isLoading}>
+                    {isLoading ? "はじめています…" : "はじめる"}
+                  </Button>
                 </div>
-
-                <div>
-                  <Input
-                    label="ニックネーム"
-                    placeholder="例：みさき"
-                    value={nickname}
-                    onChange={(event) => setNickname(event.target.value)}
-                  />
-                  <p className="mt-sm text-sm text-gray-500">
-                    本名じゃなくてOK。ほかの人には見えません。
-                  </p>
-                  {nicknameError && <p className="mt-xs text-sm text-red-600">{nicknameError}</p>}
-                </div>
-
-                <Button onClick={handleStart} disabled={isLoading}>
-                  {isLoading ? "はじめています…" : "はじめる"}
-                </Button>
-              </div>
-            </Card>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
-    </PageShell>
+    </main>
   );
 }

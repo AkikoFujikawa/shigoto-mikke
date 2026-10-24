@@ -75,11 +75,11 @@ export default function StrengthsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <main
-        className="mx-auto min-h-screen max-w-md bg-cover bg-center bg-no-repeat px-5 py-6"
-        style={{ backgroundImage: "url('/backgrounds/S01.png')" }}
-      >
+    <div
+      className="min-h-screen bg-background bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/backgrounds/S01.png')" }}
+    >
+      <main className="mx-auto min-h-screen max-w-md px-5 py-6">
         <header className="mb-8 flex items-center justify-between">
           <AppLogo />
           <button
