@@ -81,7 +81,7 @@ export default function JobsPage() {
   };
 
   if (loading) {
-    return <LoadingState message="あなたにつながる仕事を探しています…🔍" />;
+    return <LoadingState message="あなたにつながる仕事を探しています…" />;
   }
   if (error) {
     return (
@@ -111,7 +111,7 @@ export default function JobsPage() {
         </button>
       </header>
       <h1 className="shrink-0 px-5 pt-6 pb-4 text-center text-lg font-bold text-navy [@media(max-height:600px)]:pt-0 [@media(max-height:600px)]:pb-2">
-        あなたにつながる仕事を<span className="whitespace-nowrap">見つけてみよう✨</span>
+        あなたにつながる仕事を<span className="whitespace-nowrap">見つけてみよう！</span>
       </h1>
       <div
         ref={listRef}

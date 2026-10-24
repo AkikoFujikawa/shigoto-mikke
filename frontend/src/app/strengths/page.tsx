@@ -93,7 +93,7 @@ export default function StrengthsPage() {
             おわる
           </button>
         </header>
-        <h1 className="text-center text-2xl font-bold text-navy">🌱 自分らしさの結果</h1>
+        <h1 className="text-center text-2xl font-bold text-navy">自分らしさの結果</h1>
         <div className="relative mx-auto mt-6 flex max-w-[320px] items-end justify-center gap-2">
           <Image
             src="/characters/tanecchi/S05.png"
