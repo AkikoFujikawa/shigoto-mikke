@@ -119,7 +119,10 @@ export default function JobsPage() {
         className="mx-auto min-h-0 w-full max-w-md flex-1 snap-y snap-mandatory overflow-y-auto"
       >
         {jobs.map((job, index) => (
-          <section key={job.id} className="flex h-full snap-start snap-always flex-col px-5 pb-6">
+          <section
+            key={job.id}
+            className="flex min-h-full snap-start snap-always flex-col px-5 pb-6"
+          >
             <div className="my-auto flex flex-col gap-4">
               <div className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-card">
                 <JobImage name={job.name} imageUrl={job.imageUrl} emoji={job.emoji} />
