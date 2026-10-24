@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import ErrorState from "@/components/ErrorState";
 import JobImage from "@/components/JobImage";
@@ -96,17 +97,47 @@ export default function JobDetailPage() {
         </header>
 
         <section className="mt-6 rounded-2xl bg-white p-5 shadow-card">
-          <h2 className="text-lg font-bold text-navy">🌱 なぜあなたにつながる？</h2>
+          <h2 className="flex items-center gap-2 text-lg font-bold text-navy">
+            <Image
+              src="/icons/card-why.webp"
+              alt=""
+              aria-hidden
+              width={28}
+              height={28}
+              className="h-7 w-7"
+            />
+            なぜあなたにつながる？
+          </h2>
           <p className="mt-3 text-base leading-7 text-navy">{job.whyConnected}</p>
         </section>
 
         <section className="mt-4 rounded-2xl bg-white p-5 shadow-card">
-          <h2 className="text-lg font-bold text-navy">💼 どんな仕事？</h2>
+          <h2 className="flex items-center gap-2 text-lg font-bold text-navy">
+            <Image
+              src="/icons/card-job.webp"
+              alt=""
+              aria-hidden
+              width={28}
+              height={28}
+              className="h-7 w-7"
+            />
+            どんな仕事？
+          </h2>
           <p className="mt-3 text-base leading-7 text-navy">{job.description}</p>
         </section>
 
         <section className="mt-4 rounded-2xl bg-white p-5 shadow-card">
-          <h2 className="text-lg font-bold text-navy">📚 関連する学問</h2>
+          <h2 className="flex items-center gap-2 text-lg font-bold text-navy">
+            <Image
+              src="/icons/card-study.webp"
+              alt=""
+              aria-hidden
+              width={28}
+              height={28}
+              className="h-7 w-7"
+            />
+            関連する学問
+          </h2>
           <ul className="mt-3 flex flex-wrap gap-2">
             {job.academics.map((academic) => (
               <li key={academic.name}>
