@@ -38,7 +38,7 @@ const growthMessages = [
   },
   {
     stage: "",
-    message: "最後の質問！\nあなたらしい芽が育ってるよ✨",
+    message: "最後の質問！\nあなたらしい芽が育ってるよ！",
   },
 ];
 

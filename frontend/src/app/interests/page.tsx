@@ -111,7 +111,7 @@ export default function InterestsPage() {
               <h1 className="px-16 text-xl font-bold leading-relaxed text-gray-900">
                 好き・<span className="whitespace-nowrap">気になるものを</span>
                 <br />
-                選んでね！✨
+                選んでね！
               </h1>
 
               <p className="mt-2 text-base text-gray-600">
