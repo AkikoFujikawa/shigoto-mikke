@@ -238,6 +238,8 @@ pnpm build      # ビルド
 
 テスト設計書は **Week2 から少しずつ書き始める**（Week4 に固めない）。
 
+テスト設計書は [`docs/plan/テスト設計書.md`](./docs/plan/テスト設計書.md)、手動のテストシナリオは [`docs/plan/テストシナリオ.md`](./docs/plan/テストシナリオ.md) にまとめた。
+
 ---
 
 ## 8. スケジュール
@@ -287,7 +289,8 @@ pnpm build      # ビルド
 | [`docs/proposal/`](./docs/proposal) | 企画案（5案）の資料 |
 | [`.github/github-rules-shigotomikke.md`](./.github/github-rules-shigotomikke.md) | GitHub運用ルール（Issue・ブランチ・PR・レビュー・マージ条件。Gitルールの正本） |
 | [`.github/pull_request_template.md`](./.github/pull_request_template.md) | PRテンプレート |
-| （作成予定）テスト設計書・テストシナリオ | 講師要件（MUST）。Week2 から少しずつ作成し、Week4 に実施 |
+| [`docs/plan/テスト設計書.md`](./docs/plan/テスト設計書.md) | テスト方針、環境、種類と担当、合否基準、自動テストと設計の対応、実施結果、不具合、未実施 |
+| [`docs/plan/テストシナリオ.md`](./docs/plan/テストシナリオ.md) | 手動テストのシナリオ（生徒・管理者・決済・エラー系）と実機チェックリスト |
 | （作成しない）ログ設計／セキュリティ設計／運用設計 | 方針は技術選定・API設計 §6・README §6 に集約 |
 
 ---
