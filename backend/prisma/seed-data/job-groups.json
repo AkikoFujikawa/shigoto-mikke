@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "name": "IT・データ・先端技術",
+    "sortOrder": 1
+  },
+  {
+    "id": 2,
+    "name": "研究・自然・工学・ものづくり",
+    "sortOrder": 2
+  },
+  {
+    "id": 3,
+    "name": "デザイン・文化・メディア",
+    "sortOrder": 3
+  },
+  {
+    "id": 4,
+    "name": "医療・健康",
+    "sortOrder": 4
+  },
+  {
+    "id": 5,
+    "name": "教育・心理・福祉",
+    "sortOrder": 5
+  },
+  {
+    "id": 6,
+    "name": "ビジネス・法律・金融",
+    "sortOrder": 6
+  },
+  {
+    "id": 7,
+    "name": "暮らし・サービス・スポーツ",
+    "sortOrder": 7
+  },
+  {
+    "id": 8,
+    "name": "公共・社会インフラ",
+    "sortOrder": 8
+  }
+]

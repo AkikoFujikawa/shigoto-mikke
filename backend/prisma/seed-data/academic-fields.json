@@ -1,0 +1,134 @@
+[
+  {
+    "name": "情報学",
+    "category": "science",
+    "representativeTopics": "プログラミング, データ構造, アルゴリズム",
+    "sortOrder": 1
+  },
+  {
+    "name": "データサイエンス",
+    "category": "science",
+    "representativeTopics": "統計, 機械学習, データ分析",
+    "sortOrder": 2
+  },
+  {
+    "name": "地球科学",
+    "category": "science",
+    "representativeTopics": "気象学, 地質学, 気候変動",
+    "sortOrder": 3
+  },
+  {
+    "name": "地理学",
+    "category": "mixed",
+    "representativeTopics": "地図情報(GIS), 都市計画, 地域調査",
+    "sortOrder": 4
+  },
+  {
+    "name": "社会学・メディア学",
+    "category": "liberal_arts",
+    "representativeTopics": "情報社会学, メディア論, 社会調査",
+    "sortOrder": 5
+  },
+  {
+    "name": "経営学・マーケティング",
+    "category": "liberal_arts",
+    "representativeTopics": "マーケティング, 経営戦略, 統計",
+    "sortOrder": 6
+  },
+  {
+    "name": "心理学",
+    "category": "mixed",
+    "representativeTopics": "認知心理学, 統計, 行動観察",
+    "sortOrder": 7
+  },
+  {
+    "name": "教育学",
+    "category": "liberal_arts",
+    "representativeTopics": "発達心理学, 授業設計, 教育制度",
+    "sortOrder": 8
+  },
+  {
+    "name": "生物学",
+    "category": "science",
+    "representativeTopics": "分子生物学, 生態学, 遺伝学",
+    "sortOrder": 9
+  },
+  {
+    "name": "農学・生命科学",
+    "category": "science",
+    "representativeTopics": "作物学, バイオテクノロジー, 食品科学",
+    "sortOrder": 10
+  },
+  {
+    "name": "医学・看護学",
+    "category": "science",
+    "representativeTopics": "解剖生理学, 臨床医学, 公衆衛生",
+    "sortOrder": 11
+  },
+  {
+    "name": "スポーツ科学",
+    "category": "mixed",
+    "representativeTopics": "運動生理学, コーチング理論, バイオメカニクス",
+    "sortOrder": 12
+  },
+  {
+    "name": "栄養学",
+    "category": "mixed",
+    "representativeTopics": "食品学, 代謝生理学, 献立設計",
+    "sortOrder": 13
+  },
+  {
+    "name": "美術・デザイン",
+    "category": "mixed",
+    "representativeTopics": "デッサン, 色彩構成, デジタルデザイン",
+    "sortOrder": 14
+  },
+  {
+    "name": "音楽学",
+    "category": "mixed",
+    "representativeTopics": "音楽理論, 作曲, 音響学",
+    "sortOrder": 15
+  },
+  {
+    "name": "建築学",
+    "category": "mixed",
+    "representativeTopics": "製図, 構造力学, 都市デザイン",
+    "sortOrder": 16
+  },
+  {
+    "name": "法学",
+    "category": "liberal_arts",
+    "representativeTopics": "憲法, 民法, 政策",
+    "sortOrder": 17
+  },
+  {
+    "name": "語学・文学",
+    "category": "liberal_arts",
+    "representativeTopics": "文学史, 言語学, 翻訳",
+    "sortOrder": 18
+  },
+  {
+    "name": "動物科学・獣医学",
+    "category": "science",
+    "representativeTopics": "動物行動学, 解剖学, 飼育管理",
+    "sortOrder": 19
+  },
+  {
+    "name": "環境学",
+    "category": "mixed",
+    "representativeTopics": "環境政策, 生態系保全, 持続可能性",
+    "sortOrder": 20
+  },
+  {
+    "name": "工学（機械・電気）",
+    "category": "science",
+    "representativeTopics": "機械設計, 電気回路, 制御工学",
+    "sortOrder": 21
+  },
+  {
+    "name": "統計学",
+    "category": "science",
+    "representativeTopics": "統計学, 確率, データ解析",
+    "sortOrder": 22
+  }
+]
