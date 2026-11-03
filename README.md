@@ -1,327 +1,162 @@
 # しごとみっけ
 
-高校1年生（文理選択前）が「好きなこと・得意・価値観」を選ぶと、AIが内容を整理し、あらかじめ登録した職業の中から強みに関連する職業を提案する Web アプリ。気になった職業について、仕事内容に加えて**関連する学問と文系／理系／複合のつながり**まで確認できる。
+**文理選択の前に、自分を知る。** 高校1年生が「好きなこと」と5問の質問から自分の強みのタネを知り、知らなかった職業と、その職業につながる学問に出会う Web アプリです。
 
-- チーム：チームC（5名）
-- 期間：2026-09-21 〜 **締切 2026-10-18（日）**
-- ペルソナ：美咲さん（高1・長野県の私立共学校・ソフトテニス部・推し活が趣味）
-- 提供形態：学校経由。30日間の無料体験後、学校単位で有料契約（Stripe）
+- 公開 URL：https://shigoto-mikke.vercel.app
+- お試し用の学校コード：`UEDA123`（ニックネームは何でも OK）
+- ※ 無料プランで動かしているため、しばらく使われていないと、最初の表示に1分ほどかかります
+
+> ブートキャンプの最終課題として、5人のチームで開発しました（2026年9〜10月）。このリポジトリは、チームのリポジトリを自分のアカウントに移し、自分のアカウントで本番公開し直したものです。
+
+---
+
+## 背景
+
+高校1年生は、まだ自分の強みも職業もよく知らないまま、文系・理系を選んでいます。
+
+- 文理選択で悩みがあった生徒：**42.5%**、選んだあとに後悔した生徒：**約2割**
+- 文系を選んだ理由で最も多いのは「**理系科目が苦手だったから**」
+- 文理選択の情報源で最も多いのは「**担任の先生（52.1%）**」
+
+（出典：山田進太郎D&I財団 × Studyplusトレンド研究所（2023年））
+
+選ぶ材料が「苦手」に偏っていて、自分の「強み」から考えられていないのでは、と考えました。
+そこで、**消去法の文理選択を、強みの発見に変える** ことを目指しました。
+
+## 主な機能
+
+### 生徒（学校コードとニックネームで始める。アカウント登録なし）
+1. **好きなことを選ぶ**：12個から1〜3個
+2. **自分らしさチェック**：2択の質問を5問
+3. **強みのタネ**：5つの強みから3つを示し、AI がやさしい言葉で説明する
+4. **職業スワイプ**：強みと好きなことにつながる職業に、気軽に出会う
+5. **職業詳細**：仕事の内容、「なぜあなたにつながる？」、関連する学問と文系・理系・複合のつながり
+
+### 学校の先生（管理画面）
+- メールアドレスとパスワードでログイン（Firebase Authentication）
+- 生徒に配る学校コードの確認・コピー
+- 無料体験の残り日数と契約状態の表示、有料プラン（年額）の申し込み（Stripe Checkout）
+
+## 工夫した点
+
+- **AI に「向いている」と決めさせない**：強みは回答の集計で決め、職業はタグの一致で機械的に選ぶ。AI の役割は、決まった強みをわかりやすく伝えることだけにした
+- **AI の出力を信用しすぎない**：AI に送るのは選択肢の ID だけ（個人情報や自由記述は送らない）。返ってきた文は形・長さ・禁止語を検証し、使えないときは定型文に切り替える
+- **AI を呼ぶ回数を減らす**：同じ強みの組み合わせなら、保存しておいた説明文を再利用する（Redis）
+- **職業を文系・理系で決めつけない**：文理のラベルは職業ではなく学問の側にだけ付け、職業と学問のつながりとして見せる
+- **未成年のデータは最小限**：生徒は本名もメールアドレスも登録せずに使える
+
+---
+
+## 技術スタック
+
+| 分類 | 使ったもの |
+|---|---|
+| フロントエンド | Next.js（React）・TypeScript・Tailwind CSS |
+| バックエンド | Express・TypeScript・express-validator・Prisma |
+| データ | PostgreSQL（Neon）・Redis（Upstash） |
+| 認証 | Firebase Authentication（管理者）／学校コード＋ニックネームのセッショントークン（生徒） |
+| AI | OpenRouter 経由の `openai/gpt-oss-120b`（Structured Outputs） |
+| 決済 | Stripe Checkout・Webhook（テストモード） |
+| インフラ | Docker・Render（API）・Vercel（フロント） |
+| テスト・品質 | Vitest・Supertest・ESLint・Prettier・GitHub Actions |
+| ログ | pino（開発と本番で出力を切り替え） |
+
+## 構成
+
+```
+ブラウザ（生徒・先生）
+  │
+  ├─ フロント：Vercel（Next.js）
+  │     └─ Firebase Authentication（先生のログイン）
+  │
+  └─ API：Render（Docker・Express）
+        ├─ PostgreSQL：Neon
+        ├─ Redis：Upstash（マスタと AI の説明文のキャッシュ・回数制限）
+        ├─ Firebase Admin SDK（先生のトークンを検証）
+        ├─ OpenRouter（強みの説明文）
+        └─ Stripe（申し込み → Webhook で契約を更新）
+```
+
+本番公開の手順は [`docs/plan/デプロイ手順.md`](./docs/plan/デプロイ手順.md) にまとめています。
+
+---
+
+## チーム開発
+
+- 期間：2026年9月21日〜10月18日（4週間）、発表：10月29日
 - 発表資料：[STAGE 発表スライド（PDF）](./docs/presentation/stage-2026-10-29.pdf)
+- 進め方：Issue → ブランチ → PR → レビュー → マージ（[GitHub 運用ルール](./.github/github-rules-shigotomikke.md)）
 
-> このREADMEは**チーム全員の目線合わせ**用。決定事項と未決定事項を分けて書いている。変更したら PR で全員に共有する。
+| メンバー | 担当 |
+|---|---|
+| まり（リーダー） | 設計（決済・AI）、管理者ログイン、管理画面、職業の画面 |
+| あきこ | 決済（Stripe）、マッチング、キャッシュ、ログ、CI |
+| ななこ | 生徒画面の実装、共通デザイン部品、画面遷移の修正、本番デプロイ |
+| ひろみ | 職業画像の制作、生徒画面、デザイン |
+| みづき | 環境構築、診断 API、AI 連携、出力チェック、本番デプロイ |
 
----
+## 私（あきこ）の担当
 
-## 1. 守る理念（すべての判断の基準）
+バックエンドの「決済・基盤」を担当しました。作った PR は16件、ほかのメンバーの PR のレビューは38件です。
+（リンクは、このリポジトリに残っているマージコミットです）
 
-1. **AIは「向いている」「理系にすべき」と決めない。** 知らなかった職業に出会い、文理選択・進路を本人が考える材料を増やすのが目的。
-2. **職業を選ぶのはAIではなく、タグの一致度による機械的な計算。** AIは「強みの言語化」だけを担当する。「なぜあなたにつながる？」も、タグの一致からテンプレートで組み立て、AIは使わない（#30で決定）。
-3. **文理ラベルは学問領域にだけ付ける。** 職業に直接「文系／理系」を付けない（職業マスタの「文理」列は内部メモで、画面には出さない）。
-4. 表現は断定しない（「〜がありそう」「〜かも」）。
-5. 未成年のデータを扱う。**取得は最小限。AIには個人情報を送らない。**
+| 分類 | 内容 | コミット |
+|---|---|---|
+| 基盤 | frontend・backend の CI（GitHub Actions）を追加 | [89dabf2](https://github.com/AkikoFujikawa/shigoto-mikke/commit/89dabf232bb844e5a3046770c7ed1e9ea3c39565) |
+| 基盤 | 職業・分野・学問領域のマスタデータを seed で投入 | [2684e08](https://github.com/AkikoFujikawa/shigoto-mikke/commit/2684e08ffdcf40ba8c5ebbf559f27010dd759d14) |
+| 基盤 | 生徒セッション開始 API と、生徒トークンの検証 | [9743291](https://github.com/AkikoFujikawa/shigoto-mikke/commit/97432917a738bb761b7ecda8eba61e822a37ba31) |
+| マッチング | 強みのタネと職業候補を決めるマッチングロジック | [15b4856](https://github.com/AkikoFujikawa/shigoto-mikke/commit/15b4856b06c7bdf72b5faa254ce56c00c2ed0fa4) |
+| マッチング | 職業詳細 API | [6f15adc](https://github.com/AkikoFujikawa/shigoto-mikke/commit/6f15adc04666b4f2a32b88911457f57776b91e23) |
+| 決済 | 学校の契約状態をサーバー側で判定する API | [bc375e3](https://github.com/AkikoFujikawa/shigoto-mikke/commit/bc375e34a51d26d5f1fe5d81fbf16ef759ac4a2e) |
+| 決済 | Stripe Checkout の作成と、決済完了の Webhook（バックエンド） | [44687ab](https://github.com/AkikoFujikawa/shigoto-mikke/commit/44687ab200cb671133993e4af91d25af91dc8bfc) |
+| 決済 | 管理画面の申し込みボタンから Checkout へ遷移（フロント） | [01d4c95](https://github.com/AkikoFujikawa/shigoto-mikke/commit/01d4c95947f7d50386eb7ab2c4cb0bf5cac75586) |
+| キャッシュ | AI の強みの説明を保存し、同じ組み合わせなら再利用 | [497d3bf](https://github.com/AkikoFujikawa/shigoto-mikke/commit/497d3bff7506b497edadc7a37e6fb74e2c6d4c29) |
+| キャッシュ | Redis が止まっているときに API の応答が遅くなる問題を修正 | [cb8b2d7](https://github.com/AkikoFujikawa/shigoto-mikke/commit/cb8b2d7343ec73bcaadbd45956d9891ddd6d1f7c) |
+| ログ | AI の文を使えなかった理由をログに出し、ログを pino にそろえる | [e619f51](https://github.com/AkikoFujikawa/shigoto-mikke/commit/e619f514792ef5283f34b662065847a9c838888e) |
+| 本番 | 本番（Render）の中継の後ろで、生徒の IP を正しく読む | [47261a8](https://github.com/AkikoFujikawa/shigoto-mikke/commit/47261a89eadff617f8ecadde8582903e1e3957c0) |
+| 見た目 | アプリのロゴを、スライドと同じロゴ画像にそろえる | [440b4ad](https://github.com/AkikoFujikawa/shigoto-mikke/commit/440b4ad3ad97828811ecc6b1a3c97cd9f54f1c0c) |
+| 見た目 | 好きなこと・質問・強みのアイコンを、台の形をそろえてイラストにする | [c68f21c](https://github.com/AkikoFujikawa/shigoto-mikke/commit/c68f21c49f2c7d1e6d1b296d2b84c6633417a1de)・[f6464dd](https://github.com/AkikoFujikawa/shigoto-mikke/commit/f6464dd6e39cf54aac6481c26c03f72a87332a3f) |
+| 企画 | 企画検討の段階の企画案の資料に、根拠を追記 | [810c5b9](https://github.com/AkikoFujikawa/shigoto-mikke/commit/810c5b9a82e612027d6066bb8bfa0a26164ffbab) |
 
----
-
-## 2. スコープ
-
-> **最優先は「生徒画面をきちんと作り上げること」。** 生徒が使う7画面の完成度を第一にし、それ以外は最小限にする。
-
-### P0（第一）：生徒画面の完成度
-入口（学校コード＋ニックネーム）／好き・気になるカード／自分らしさチェック（5問）／強みのタネ（AI）／職業スワイプ／職業詳細／共通エラー。ローディング・エラー・文言・見た目・アクセシビリティ・スマホ実機（iOS Safari／Android Chrome）まで含めて仕上げる。
-
-### P1：講師要件の最小実装（MUST）
-- Web アプリ、**フロントとバックエンドを分離**
-- コンテナ利用（Docker）
-- キャッシュサーバー（Redis）… **職業・質問・好きなものマスタのキャッシュのみ**
-- 決済（Stripe）… **管理者画面から Checkout に遷移する最小実装（テストモード）**
-- XSS／SQL インジェクション対策
-- 単体テストのテストコード
-- テスト設計書・テストシナリオ
-- 開発／本番でログの出し分け
-- 管理者2画面（ログイン／管理画面）。自己登録画面は作らず、学校はseedで用意する（#11で決定）
-
-### ADVANCED（実施するもの）
-- **本番デプロイ・HTTPS**（提供ドメインでよい）
-- **LLM組み込み**（結果画面の中核として P0 の一部）
-- プロンプトインジェクション対策（入力は選択肢IDのみ、出力はスキーマ検証）
-
-### 実施しない（今回のスコープ外）
-- サブドメイン取得（独自ドメイン）
-- フロントのテスト自動化（Playwright）
-- `openapi.yaml`（API設計書を仕様とする）
-- 「知らなかった！」、結果の再表示・履歴表示、結果共有、契約切れの生徒制限
-- マッチングの分野分散、診断の細かいレート制限
-- ロードマップ画面、教員向け分析ダッシュボード、AIチャット、SSO・一括登録、多言語、パスワード再設定の画面
-
-> ※実施しない項目は講師に評価範囲を確認する（未決定事項 11）。
-
-詳細は [`docs/plan/要件定義.md`](./docs/plan/要件定義.md)。
+チーム開発のあと、自分のアカウントで Neon・Upstash・Firebase・OpenRouter・Stripe・Render・Vercel を用意し、本番を公開し直しました（[デプロイ手順](./docs/plan/デプロイ手順.md)）。
 
 ---
 
-## 3. 技術スタック（決定）
+## ローカルでの動かし方
 
-| レイヤ | 採用 | メモ |
-| ------ | ---- | ---- |
-| 言語 | TypeScript（フロント・バック共通） | |
-| フロント | Next.js（React）＋ Tailwind CSS | **フロント専用**。API Routes / Route Handlers にロジックを置かない |
-| バックエンド | Express ＋ **express-validator**（入力検証） | 検証なしのルートを作らない。Zod は使わない |
-| ORM | Prisma | SQL は原則書かない（生SQLは禁止寄り） |
-| DB | PostgreSQL（Neon） | |
-| キャッシュ | Redis | 職業・質問・好きなものマスタのキャッシュから |
-| 認証 | 管理者：Firebase Authentication／生徒：**認証なし（学校コード＋ニックネームのセッションJWT）** | 案Bで暫定決定（チーム確認後に確定） |
-| AI | OpenRouter 経由（`openai/gpt-oss-120b`）＋ Structured Outputs | サーバーからのみ呼び出す。配布APIキー（コース共有・予算はスクール負担） |
-| 決済 | Stripe Checkout（テストモード）＋ Webhook | 独自決済画面は作らない |
-| コンテナ | Docker / Docker Compose | |
-| ホスティング | フロント：Render（当初は Vercel の予定。スクールの private リポジトリが Vercel の無料プランで使えないため変更。#76）／API：Render（Docker）／DB：Neon／Redis：Render または Upstash | 本番はHTTPS |
-| CI/CD | GitHub Actions | lint・型・単体テスト |
-| テスト | Vitest ＋ Supertest（単体・API）。Playwright は**実施しない** | 生徒フローはテストシナリオ（手動・実機）で担保 |
-| ログ | pino（`NODE_ENV` で出力を切替） | |
-
-選定理由・比較・リスクは [`docs/plan/技術選定.md`](./docs/plan/技術選定.md)。
-
----
-
-## 4. リポジトリ構成（予定）
-
-> ※コードのリポジトリは環境構築（Week1）で作成する。以下は合意する構成。
-
-```
-shigoto-mikke/
-├── frontend/                # Next.js（生徒UI・管理者UI）
-│   ├── src/app/             # ページ（student/, admin/）
-│   ├── src/components/      # 共通コンポーネント
-│   ├── src/lib/             # API呼び出し・共通処理
-│   └── Dockerfile
-├── backend/                 # Express API
-│   ├── src/
-│   │   ├── routes/          # ルーティング（URLと検証の対応）
-│   │   ├── controllers/     # リクエスト／レスポンスの処理
-│   │   ├── services/        # ビジネスロジック（マッチング、AI連携、契約判定）
-│   │   ├── repositories/    # DBアクセス（Prisma）
-│   │   ├── middlewares/     # 認証・検証エラー・ログ・レート制限
-│   │   └── config/
-│   ├── prisma/              # schema.prisma・マイグレーション・seed
-│   ├── tests/               # Vitest / Supertest
-│   └── Dockerfile
-├── docs/
-│   ├── plan/                # 設計書一式（要件定義・API/DB/画面設計・ワイヤーフレーム・ER図）
-│   └── proposal/            # 企画案
-├── docker-compose.yml       # frontend / backend / postgres / redis
-├── .env.example
-└── README.md
-```
-
-**依存の向き**：`routes → controllers → services → repositories`。逆向きに呼ばない。マッチングなどのビジネスロジックは `services` に置き、フレームワークに依存させない（テストしやすくするため）。
-
----
-
-## 5. ローカル開発（環境構築後に確定）
-
-### 前提
-- Node.js（バージョンは `.nvmrc` に従う）、pnpm
-- Docker Desktop
-
-### 手順（予定）
+前提：Docker Desktop
 
 ```bash
-# 1. 環境変数を用意
+# 1. 環境変数を用意する（値は各サービスで発行したものを入れる。Git には含めない）
 cp .env.example .env
-# Firebase / Stripe / OpenRouter のキーを設定（Slack等の安全な手段で共有。Gitに含めない）
 
-# 2. 全サービスを起動（frontend / backend / postgres / redis）
+# 2. frontend / backend / postgres / redis を起動する
 docker compose up -d
 
-# 3. DBのマイグレーションと初期データ投入
+# 3. マイグレーションと初期データの投入
 docker compose exec backend pnpm prisma migrate dev
 docker compose exec backend pnpm prisma db seed
 ```
 
-| サービス | ポート（予定） |
-| -------- | -------------- |
-| frontend | 3000 |
-| backend | 4000 |
-| postgres | 5433（ホスト側。コンテナ内は 5432） |
+| サービス | URL・ポート |
+|---|---|
+| frontend | http://localhost:3000 |
+| backend | http://localhost:4000 |
+| postgres | 5433（ホスト側） |
 | redis | 6379 |
 
-### よく使うコマンド（予定）
+テスト（バックエンド）：`docker compose exec backend pnpm test`
 
-```bash
-pnpm dev        # 開発サーバー
-pnpm lint       # ESLint
-pnpm test       # 単体テスト
-pnpm build      # ビルド
-```
-
-### 環境変数（`.env.example` に載せる項目）
-
-| 変数 | 用途 |
-| ---- | ---- |
-| `NODE_ENV` | `development` / `production`（ログの出し分けに使う） |
-| `DATABASE_URL` | PostgreSQL 接続 |
-| `REDIS_URL` | Redis 接続 |
-| `FIREBASE_*` | Firebase Admin SDK（サーバー）／Firebase Web設定（フロント。**管理者ログインのみ**） |
-| `SESSION_SECRET` | 生徒のセッショントークン（JWT）の署名鍵（**サーバー側のみ**） |
-| `OPENROUTER_API_KEY` | OpenRouter（**サーバー側のみ**。コース配布の共有キー） |
-| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe（**サーバー側のみ**） |
-| `STRIPE_PRICE_ID` | Stripe（**サーバー側のみ**。一括払い・50,000円（税込）のPrice ID） |
-| `FRONTEND_URL` | CORS 許可元 |
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | postgres（docker-compose 用） |
-| `NEXT_PUBLIC_FIREBASE_*` | Firebase Web設定（フロント。管理者ログイン画面のみ） |
-| `NEXT_PUBLIC_API_BASE_URL` | フロントから呼ぶ API のURL |
-
-> `backend/.env.example` には、backend 単体で動かす場合の `PORT`（既定 4000）もある（通常はルートの `.env` を docker-compose 経由で使うため不要）。
-
-**秘密のキーは絶対に Git にコミットしない。フロントに露出させない（`NEXT_PUBLIC_` を付けない）。**
-
----
-
-## 6. コーディングルール（全員で守る）
-
-### セキュリティ
-- 入力検証は **express-validator に統一**。検証エラー時に400を返す**共通ミドルウェア**を使い、検証なしのルートを作らない。
-- DB は **Prisma のみ**。生SQL（`$queryRaw`）は原則禁止。使うならレビュー必須。
-- フロントで **`dangerouslySetInnerHTML` を使わない**（ESLintで禁止）。AI生成文もテキストとして表示する。
-- **認可**：他校の生徒・学校のデータを取得できないよう、全クエリを学校IDで絞り込む（共通処理にする）。
-- **AI への入力は「選択肢ID」のみ**（自由記述なし）。IDはマスタと照合してから使う。AI の出力はスキーマ検証し、逸脱したら定型文にフォールバック。
-- ログに個人情報・トークン・キーを出さない。
-
-### ログ
-- `NODE_ENV=development`：debug、見やすい整形出力
-- `NODE_ENV=production`：info以上、JSON
-- ログは `pino` にそろえる（`console.error` などは使わない）。`Authorization`・`Stripe-Signature` のヘッダーは、自動で伏せる。
-
-#### ログの見方（障害の調査。#72）
-| 見たいもの | 見る場所 |
-| ---- | ---- |
-| 手元 | `docker compose logs --tail 100 backend` |
-| 本番（Render） | Render のダッシュボード → バックエンドのサービス → **Logs**（文字で検索できる） |
-
-| 起きたこと | 探す文 | 見る項目 |
-| ---- | ---- | ---- |
-| 想定外のエラー（500） | `unexpected error` | `err` |
-| 強みの説明が固定文になった | `AI の強みの説明を使えませんでした` | `reason`（下の表） |
-| Redis が使えない | `Redis に接続できません`／`Redis からキャッシュを取得できませんでした` | `errMessage`・`key` |
-| 管理者がログインできない | `Firebase ID トークンの検証に失敗しました`／`Firebase UID が school_admins に登録されていません` | `err` |
-| 決済が反映されない | `Stripe Webhook` | `eventId` |
-
-`reason`（AI の文を使えなかった理由）：
-
-| reason | 意味 |
-| ---- | ---- |
-| `timeout` | AI が時間内（15秒）に返さなかった |
-| `request_failed` | AI の呼び出しが失敗した（キーの未設定、回数の上限、AI 側の障害など。`errMessage`・`status` を見る） |
-| `empty_response`／`invalid_json`／`invalid_shape` | AI の返事が空、JSON ではない、決めた形ではない |
-| `too_short`／`too_long`／`forbidden_word`／`broken_text`／`no_period` | 説明文が検証を通らなかった（`code`・`description` に、どの強みの、どんな文かが出る） |
-
-### データ・マスタ
-- 好きなものタグは**12種**（人と話す／ゲーム／健康・からだ／自然・環境／調べる・研究／絵・デザイン／ものづくり／動物／食べる・料理／宇宙・星／スポーツ／PC・IT）。追加・変更は全員に共有してから。
-- 特性タグは**5種**（探究する力／発想する力／人を支える力／表現する力／こだわる力）。**略称を使わず正式名称で統一**。
-- マスタデータは xlsx を元に seed で投入する。DBを直接手で書き換えない。
-
-### Git
-運用ルールの正本は [`.github/github-rules-shigotomikke.md`](./.github/github-rules-shigotomikke.md)。PRの書き方は [`.github/pull_request_template.md`](./.github/pull_request_template.md)。ここでは要点だけを示す。
-
-- `main`・`develop` へは直接プッシュしない（GitHub の Web 画面での直接編集・ファイルアップロードも同様）。ブランチを切って PR を作り、レビューを受けてから merge する。
-- レビューは変更の種類別（基準は正本の §6.2）。軽微な修正のみの場合は、AI レビューでも可とする場合あり。
-- ブランチ名・コミット・PRの書き方は、正本と PR テンプレートに従う。
-
----
-
-## 7. テスト
-
-| 種類 | ツール | 対象 |
-| ---- | ------ | ---- |
-| 単体 | Vitest | マッチングロジック、契約状態の判定、AI出力の検証、共通処理 |
-| API | Supertest | 認証・認可、入力検証、学校コード検証、Webhook |
-| フロント自動化 | （実施しない） | 生徒フローはテストシナリオ（手動・スマホ実機）で担保する |
-| 大枠 | テスト設計書・テストシナリオ | 生徒フロー、管理者フロー、決済、エラー系、スマホ実機（iOS Safari／Android Chrome） |
-
-テスト設計書は **Week2 から少しずつ書き始める**（Week4 に固めない）。
-
-テスト設計書は [`docs/plan/テスト設計書.md`](./docs/plan/テスト設計書.md)、手動のテストシナリオは [`docs/plan/テストシナリオ.md`](./docs/plan/テストシナリオ.md) にまとめた。
-
----
-
-## 8. スケジュール
-
-詳細は [`docs/plan/マイルストーン.md`](./docs/plan/マイルストーン.md)。**コードフリーズは 10/16(金)**、10/18 は日曜。
-
-| 週 | 期間 | ゴール |
-| -- | ---- | ------ |
-| Week1 | 9/21〜9/27 | 未決定事項の確定、環境構築、**全員が「フロント→API→DB」とDocker起動を通す**、**生徒画面のデザイン確定**、職業10件を seed |
-| Week2 | 9/28〜10/4 | **生徒の全7画面をスマホで通して動かす**（AIは固定文）、マッチング、**初回の本番デプロイ（HTTPS）** |
-| Week3 | 10/5〜10/11 | **AI連携**、**生徒画面の磨き込み**、**スマホ実機確認**、管理者2画面＋Stripe（最小）、Redis、単体テスト |
-| Week4 | 10/12〜10/18 | 生徒画面の仕上げ、テスト設計書の実施、バグ修正、スライド・デモ・リハーサル |
-
-> **稼働は1人1日2時間**（実効の余力は約23〜31人日）。現在のスコープ（約88人日）は大幅に超過しており、絞り込みが必要。案は [`docs/plan/マイルストーン.md`](./docs/plan/マイルストーン.md) の「稼働時間と工数の目安」を参照。
-
-**工数が足りなくなったら削る順**：管理者画面の作り込み → AI結果のキャッシュ → 文言を仕上げる職業を25件に絞る → 単体テストを3種類に → テストシナリオを4本に。
-**削らないもの**：生徒の7画面、スマホ実機確認、AIのフォールバック、本番デプロイ。
-
-### 担当（案）
-
-| 担当 | 主な役割 |
-| ---- | -------- |
-| A | 生徒フロント前半（入口・カード・5問・強みのタネ）、デザインの統一 |
-| B | 生徒フロント後半（スワイプ・詳細・エラー）、Week3 に管理者フロント |
-| C | バックエンド（認証・診断API・マッチング・AI連携・フォールバック） |
-| D | バックエンド基盤（DB・seed・マスタAPI・Redis・Stripe）、Docker・CI・本番デプロイ |
-| E | データ準備（職業データの仕上げ・文言（画像はAIで制作中の担当者が対応））、テスト設計書、スライド |
-
-※氏名の割り当てはチームで決める。**生徒画面に3名（A・B・C）**を充てる。各自が自分のコードの単体テストを書く。
-
----
-
-## 9. ドキュメント一覧
+## ドキュメント
 
 | ドキュメント | 内容 |
-| ------------ | ---- |
-| [`docs/plan/要件定義.md`](./docs/plan/要件定義.md) | 目的、ペルソナ、機能・非機能要件、講師要件との対応、未決定事項 |
-| [`docs/plan/技術選定.md`](./docs/plan/技術選定.md) | 技術の選定理由・比較・リスクと対応 |
-| [`docs/plan/画面設計.md`](./docs/plan/画面設計.md) | 画面一覧、遷移図、各画面の仕様、バリデーション、ワイヤーフレーム |
-| [`docs/plan/wireframes/`](./docs/plan/wireframes) | ワイヤーフレーム（SVG） |
-| [`docs/plan/認証方式_検討メモ.md`](./docs/plan/認証方式_検討メモ.md) | 生徒の認証方式の検討（決定記録欄あり） |
-| [`docs/plan/マイルストーン.md`](./docs/plan/マイルストーン.md) | 週ごとのゴールと担当 |
-| [職業マスタ等のデータ準備（Google スプレッドシート）](https://docs.google.com/spreadsheets/d/1rNd05cHaLdrm3w-ybJzyIUtgc1SNSSdxK2Dom0-rlxg/edit) | 職業マスタ・学問領域タグ・好きなもの／特性タグ（データ準備） |
-| [`docs/plan/将来の拡張.md`](./docs/plan/将来の拡張.md) | 今回やらないこと（学校向けの集計・生徒の特定、スコープ外の機能）と、拡張しやすくするために守る設計 |
-| [`docs/plan/API設計.md`](./docs/plan/API設計.md) | エンドポイント一覧、リクエスト／レスポンス、エラー、レート制限、認可 |
-| [`docs/plan/DB設計.md`](./docs/plan/DB設計.md) | ER図、テーブル定義、インデックス・制約、保持ルール、seed ルール、Prisma スキーマ案 |
-| [`docs/proposal/`](./docs/proposal) | 企画案（5案）の資料 |
-| [`.github/github-rules-shigotomikke.md`](./.github/github-rules-shigotomikke.md) | GitHub運用ルール（Issue・ブランチ・PR・レビュー・マージ条件。Gitルールの正本） |
-| [`.github/pull_request_template.md`](./.github/pull_request_template.md) | PRテンプレート |
-| [`docs/plan/テスト設計書.md`](./docs/plan/テスト設計書.md) | テスト方針、環境、種類と担当、合否基準、自動テストと設計の対応、実施結果、不具合、未実施 |
-| [`docs/plan/テストシナリオ.md`](./docs/plan/テストシナリオ.md) | 手動テストのシナリオ（生徒・管理者・決済・エラー系）と実機チェックリスト |
-| （作成しない）ログ設計／セキュリティ設計／運用設計 | 方針は技術選定・API設計 §6・README §6 に集約 |
-
----
-
-## 10. 未決定事項（決まったらここを更新する）
-
-| # | 内容 | 影響 | 決める期限 |
-| - | ---- | ---- | ---------- |
-| 1 | ~~生徒の認証方式~~ **案B（学校コード＋ニックネーム）の最小構成で暫定決定**。チーム確認後に確定 | 認証・DB・画面 | Week1（確認のみ） |
-| 2 | 「次の行動」表示の要否（ロードマップ復活か、職業詳細への1行追加か） | 画面・要件 | Week1 |
-| 3 | ~~職業画像の方針~~ **AI生成で決定**（制作中）。残る確認：AI画像の利用規約・権利、全職業の画像が揃う期限 | データ準備 | Week1 |
-| 4 | ~~独自ドメインの取得~~ **取得しない方針**（提供ドメインで HTTPS）。講師に評価範囲を確認 | ADVANCED（サブドメイン） | Week1 |
-| 5 | ~~OpenAI の利用モデルと月額上限、アカウント~~ **解決済み**（OpenRouter経由・`openai/gpt-oss-120b`に確定。月額上限はスクール負担の共有キーのため、チームで管理する数字ではない。#29） | AI連携 | — |
-| 6 | ~~無料体験終了後の生徒の扱い~~ 契約切れの生徒制限を実施しないため対象外 | — | — |
-| 7 | ~~診断結果の履歴を残すか~~ 結果の再表示を実施しないため対象外 | — | — |
-| 8 | 職業マスタの最終件数（現在39件。文言・画像の仕上げが間に合うか） | データ準備 | Week2 |
-| 9 | ~~質問2の特性の対応~~ **解決済み**（5問の設問と特性の対応を、各特性2回ずつに揃えて確定。`docs/plan/DB設計.md` §6.3） | マッチング | — |
-| 10 | ~~親向けの関わり方（結果共有）~~ 実施しないと決定 | — | — |
-| 11 | 講師への確認：フロント／バックの分離の範囲、ADVANCEDの評価範囲。~~フロントの本番もコンテナ必須か~~ **解決済み**（講師確認済み。フロントの本番は Vercel でコンテナ不要（のちに Render に変更。#76）。開発は Compose に含める） | 構成全体 | Week1 |
-| 12 | ~~有料プランの内容~~ **解決済み**（一括払い・1校あたり50,000円（税込）・1年間有効。契約期限切れでも生徒の利用は制限しない。#24） | 決済実装 | — |
-
----
-
-## 11. 用語
-
-| 用語 | 意味 |
-| ---- | ---- |
-| 好きなものタグ | 生徒が選ぶカード（12種） |
-| 特性タグ（強みのタネ） | 5問の回答から導く強み（5種） |
-| 学問領域タグ | 職業に紐づく関連学問。文系／理系／複合の category を持つ |
-| 職業マスタ | あらかじめ登録した職業のDB |
-| 学校コード | 学校のseed投入時に割り当て（管理者の自己登録は廃止）。生徒が入口で入力して学校に紐づく |
-| MVP | 最低限これだけは動かす、というスコープ |
+|---|---|
+| [要件定義](./docs/plan/要件定義.md) | 目的、ペルソナ、機能・非機能要件 |
+| [技術選定](./docs/plan/技術選定.md) | 選定理由・比較・リスクと対応 |
+| [画面設計](./docs/plan/画面設計.md) | 画面一覧、遷移、各画面の仕様 |
+| [API 設計](./docs/plan/API設計.md) | エンドポイント、エラー、レート制限、認可 |
+| [DB 設計](./docs/plan/DB設計.md) | ER 図、テーブル定義、seed のルール |
+| [テスト設計書](./docs/plan/テスト設計書.md)・[テストシナリオ](./docs/plan/テストシナリオ.md) | テスト方針と結果、手動テストの手順 |
+| [将来の拡張](./docs/plan/将来の拡張.md) | 今回やらなかったことと、拡張しやすくするための設計 |
+| [デプロイ手順](./docs/plan/デプロイ手順.md) | 自分のアカウントでの本番公開の手順 |
+| [チーム開発中の README](./docs/plan/チーム開発README.md) | 開発中のスコープ・決定事項・スケジュール（当時のまま） |
